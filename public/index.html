@@ -92,7 +92,12 @@
                 this.targetScale = 1.0;
                 this.marketCap = 0;
                 
-                this.init();
+				this.init();
+				// Jumpy dick animation params
+				this.bounceStartMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+				this.bounceAmplitude = 0.10; // base jump height
+				this.bounceSpeed = 3.0; // jumps per second factor
+				this.bounceJerk = 0; // transient spikes
 				this.ws = null;
 				this.wsReconnectDelayMs = 2000; // start at 2s, backoff to max 10s
 				this.connectWebSocket();
@@ -442,6 +447,18 @@
 				if (Math.abs(this.dickLengthInches - this.dickTargetLengthInches) > 0.01) {
 					this.dickLengthInches += (this.dickTargetLengthInches - this.dickLengthInches) * 0.1;
 					this.updateDickGeometry();
+				}
+
+				// Jumpy dick animation (vertical bounce + slight forward bob)
+				if (this.dickGroup) {
+					const t = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - this.bounceStartMs;
+					const seconds = t / 1000;
+					const speed = this.bounceSpeed;
+					const amplitude = this.bounceAmplitude;
+					const bounce = Math.abs(Math.sin(seconds * Math.PI * speed)); // up-down pulse
+					const jerk = (Math.random() - 0.5) * 0.004; // tiny randomness
+					this.dickGroup.position.y = -0.25 + bounce * amplitude + jerk;
+					this.dickGroup.position.z += (Math.sin(seconds * Math.PI * speed * 0.5)) * 0.0005; // micro bob on Z
 				}
                 
                 // Keep object seated on the ground plane (y = -2), regardless of scale
