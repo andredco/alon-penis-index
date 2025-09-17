@@ -355,8 +355,8 @@
 				const lengthProgress = Math.max(0, Math.min(1, (lengthUnits - 6) / (45 - 6)));
 				const shaftRadius = baseRadius + 0.12 * Math.pow(lengthProgress, 0.7); // thicker growth per inch
 				
-				const shaftMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-				const headMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+				const shaftMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+				const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFC0CB });
 				
 				// Shaft (cylinder oriented along Z)
 				const shaftGeometry = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 20);
@@ -386,7 +386,7 @@
 				this.dickGroup.add(head);
 				
 				// Balls
-				const ballMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
+				const ballMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
 				const baseBall = 0.16;
 				const ballRadius = baseBall + 0.14 * Math.pow(lengthProgress, 0.7); // balls scale with cap too
 				const ballOffsetY = -ballRadius * 0.65; // sit slightly below shaft base
