@@ -301,12 +301,65 @@
 						if (Math.abs(tDeltaToGround) > 1e-3) {
 							this.traveler.position.y += tDeltaToGround;
 						}
+						// Add tiny dick to traveler
+						this.addTravelerDick();
 					}, undefined, (err) => {
 						console.warn('Unable to load Wealthy Traveler FBX. Ensure the file exists in /public.', err);
 					});
 				} catch (e) {
 					console.warn('FBX loader not available.', e);
 				}
+			}
+
+			addTravelerDick() {
+				if (!this.traveler) return;
+				// Compute an approximate groin position from bounding box
+				const box = new THREE.Box3().setFromObject(this.traveler);
+				const height = box.max.y - box.min.y;
+				const groinY = box.min.y + height * 0.33; // roughly one-third up from feet
+				
+				const group = new THREE.Group();
+				const shaftRadius = 0.05;
+				const shaftLength = 0.22;
+				const shaftMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+				const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFC0CB });
+				
+				const shaftGeo = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 14);
+				const shaft = new THREE.Mesh(shaftGeo, shaftMaterial);
+				shaft.rotation.x = Math.PI / 2; // point forward +Z
+				shaft.castShadow = true;
+				shaft.receiveShadow = true;
+				
+				const headGeo = new THREE.SphereGeometry(shaftRadius * 1.1, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2);
+				const head = new THREE.Mesh(headGeo, headMaterial);
+				head.rotation.x = Math.PI / 2;
+				head.castShadow = true;
+				head.receiveShadow = true;
+				
+				const baseZ = 0.14;
+				shaft.position.z = baseZ + shaftLength / 2;
+				head.position.z = baseZ + shaftLength;
+				
+				group.add(shaft);
+				group.add(head);
+				
+				// Small balls
+				const ballMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+				const ballRadius = shaftRadius * 0.85;
+				const ballOffsetY = -ballRadius * 0.6;
+				const ballOffsetZ = baseZ - 0.01;
+				const leftBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 12, 10), ballMaterial);
+				leftBall.position.set(-ballRadius * 0.9, ballOffsetY, ballOffsetZ);
+				leftBall.castShadow = true;
+				const rightBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 12, 10), ballMaterial);
+				rightBall.position.set(ballRadius * 0.9, ballOffsetY - 0.01, ballOffsetZ + 0.01);
+				rightBall.castShadow = true;
+				group.add(leftBall);
+				group.add(rightBall);
+				
+				// Attach near groin area in traveler's local space
+				group.position.set(0, groinY - this.traveler.position.y, 0);
+				this.traveler.add(group);
 			}
 
 			startCountdownTimer() {
@@ -438,6 +491,30 @@
 				rightBall.receiveShadow = true;
 				this.dickGroup.add(leftBall);
 				this.dickGroup.add(rightBall);
+
+				// Pubic hair (procedural cones around the base)
+				const pubesGroup = new THREE.Group();
+				const pubesCount = 220;
+				const hairMaterial = new THREE.MeshLambertMaterial({ color: 0x3a2a1a });
+				for (let i = 0; i < pubesCount; i++) {
+					const r = shaftRadius * (1.0 + Math.random() * 0.9); // around shaft base
+					const theta = Math.random() * Math.PI * 2;
+					const hx = r * Math.cos(theta);
+					const hz = baseZ + (Math.random() - 0.5) * 0.10;
+					const hy = (Math.random() - 0.2) * 0.06; // slight vertical scatter
+					const hLen = 0.08 + Math.random() * 0.08;
+					const hRad = 0.006 + Math.random() * 0.006;
+					const hairGeo = new THREE.ConeGeometry(hRad, hLen, 6);
+					const hair = new THREE.Mesh(hairGeo, hairMaterial);
+					// Cones point along +Y by default; add some random tilt
+					hair.position.set(hx, hy, hz);
+					hair.rotation.x = (Math.random() - 0.5) * 0.6;
+					hair.rotation.z = (Math.random() - 0.5) * 0.6;
+					hair.rotation.y = Math.random() * Math.PI * 2;
+					hair.castShadow = true;
+					pubesGroup.add(hair);
+				}
+				this.dickGroup.add(pubesGroup);
             }
             
             animate() {
