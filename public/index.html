@@ -65,9 +65,9 @@
         <div id="loading">Loading character...</div>
         <div id="ui" style="display: none;">
             <div id="marketCapDisplay">Market Cap: Loading...</div>
-			<div id="scaleDisplay">Character Scale: 1.0x</div>
+            <div id="scaleDisplay">Character Scale: 1.0x</div>
 			<div id="dickDisplay">Dick Length: 6.0 in</div>
-			<div id="statusDisplay" style="font-size: 12px; color: #666;"></div>
+            <div id="statusDisplay" style="font-size: 12px; color: #666;"></div>
 			<div id="refreshRow" style="font-size: 12px; color: #666; margin-top: 6px; display: flex; align-items: center; gap: 8px;">
 				<span id="refreshIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#cccccc;opacity:0;transition:opacity 0.2s, background 0.2s;"></span>
 				<span id="lastUpdatedDisplay">Waiting for first update…</span>
@@ -77,6 +77,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
@@ -90,11 +92,12 @@
                 this.targetScale = 1.0;
                 this.marketCap = 0;
                 
-				this.init();
+                this.init();
 				this.ws = null;
 				this.wsReconnectDelayMs = 2000; // start at 2s, backoff to max 10s
 				this.connectWebSocket();
-				this.loadCharacter();
+                this.loadCharacter();
+				this.loadWealthyTraveler();
 				this.fetchInitialMarketCap();
 				this.refreshIntervalMs = 10000; // match server broadcast cadence
 				this.nextTickAt = Date.now() + this.refreshIntervalMs;
@@ -125,8 +128,8 @@
                 
 				// Balanced lighting (slightly brighter, softer)
 				const ambientLight = new THREE.AmbientLight(0xffffff, 0.26);
-				this.scene.add(ambientLight);
-
+                this.scene.add(ambientLight);
+                
 				const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdadada, 0.28);
 				this.scene.add(hemiLight);
 
@@ -243,26 +246,26 @@
             }
             
 			connectWebSocket() {
-				const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 				this.ws = new WebSocket(`${protocol}//${window.location.host}`);
-				
+                
 				this.ws.onmessage = (event) => {
 					try {
-						const message = JSON.parse(event.data);
-						if (message.type === 'marketcap') {
-							this.updateMarketCap(message.data, message.fallback);
-						}
+                    const message = JSON.parse(event.data);
+                    if (message.type === 'marketcap') {
+                        this.updateMarketCap(message.data, message.fallback);
+                    }
 					} catch {}
-				};
-				
+                };
+                
 				this.ws.onopen = () => {
-					console.log('WebSocket connected');
+                    console.log('WebSocket connected');
 					this.wsReconnectDelayMs = 2000; // reset backoff on successful connect
-				};
-				
+                };
+                
 				this.ws.onerror = (error) => {
-					console.error('WebSocket error:', error);
-				};
+                    console.error('WebSocket error:', error);
+                };
 				
 				this.ws.onclose = () => {
 					// Exponential backoff reconnect up to 10s
@@ -272,6 +275,35 @@
 				};
 			}
 
+			loadWealthyTraveler() {
+				try {
+					const loader = new THREE.FBXLoader();
+					loader.load('Wealthy_Traveler_0715225309_texture.fbx', (object) => {
+						this.traveler = object;
+						this.traveler.scale.setScalar(0.015); // make bigger
+						this.traveler.position.set(2.0, 0, 0); // place to the right of the pill
+						this.traveler.traverse((child) => {
+							if (child.isMesh) {
+								child.castShadow = true;
+								child.receiveShadow = true;
+							}
+						});
+						this.scene.add(this.traveler);
+						// Seat traveler on ground (y = -2)
+						const tBox = new THREE.Box3().setFromObject(this.traveler);
+						const tMinY = tBox.min.y;
+						const tDeltaToGround = -2 - tMinY;
+						if (Math.abs(tDeltaToGround) > 1e-3) {
+							this.traveler.position.y += tDeltaToGround;
+						}
+					}, undefined, (err) => {
+						console.warn('Unable to load Wealthy Traveler FBX. Ensure the file exists in /public.', err);
+					});
+				} catch (e) {
+					console.warn('FBX loader not available.', e);
+				}
+			}
+
 			startCountdownTimer() {
 				const countdownEl = document.getElementById('countdownDisplay');
 				setInterval(() => {
@@ -279,10 +311,10 @@
 					const seconds = (remainingMs / 1000).toFixed(1);
 					countdownEl.textContent = `Next in ${seconds}s`;
 				}, 200);
-			}
+            }
             
-			updateMarketCap(marketCap, isFallback = false) {
-				this.marketCap = marketCap;
+            updateMarketCap(marketCap, isFallback = false) {
+                this.marketCap = marketCap;
 				// Pulse refresh indicator and update timestamps/counters
 				const indicator = document.getElementById('refreshIndicator');
 				const lastUpdatedEl = document.getElementById('lastUpdatedDisplay');
@@ -401,9 +433,9 @@
 				rightBall.receiveShadow = true;
 				this.dickGroup.add(leftBall);
 				this.dickGroup.add(rightBall);
-			}
-
-			animate() {
+            }
+            
+            animate() {
                 requestAnimationFrame(() => this.animate());
                 
 				// Smooth dick growth animation
