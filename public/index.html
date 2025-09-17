@@ -281,7 +281,7 @@
 					loader.load('Wealthy_Traveler_0715225309_texture.fbx', (object) => {
 						this.traveler = object;
 						this.traveler.scale.setScalar(0.015); // make bigger
-						this.traveler.position.set(2.0, 0, 0); // place to the right of the pill
+						this.traveler.position.set(0.1, 0, 4.5); // slightly left and forward
 						this.traveler.traverse((child) => {
 							if (child.isMesh) {
 								child.castShadow = true;
