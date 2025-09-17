@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUMPDICK - PUMP THE DICK</title>
+    <meta name="description" content="PUMPDICK - PUMP THE DICK. Real-time market cap visual with a pill mascot that grows as your token pumps.">
+    <meta property="og:title" content="PUMPDICK - PUMP THE DICK">
+    <meta property="og:description" content="Real-time market cap visual with a pill mascot that grows as your token pumps.">
+    <meta property="og:type" content="website">
+    <style>
+        body {
+            margin: 0;
+            background: #ffffff;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #333;
+            z-index: 100;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        #marketCapDisplay {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        #scaleDisplay {
+            font-size: 16px;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333;
+            font-size: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="loading">Loading character...</div>
+        <div id="ui" style="display: none;">
+            <div id="marketCapDisplay">Market Cap: Loading...</div>
+			<div id="scaleDisplay">Character Scale: 1.0x</div>
+			<div id="dickDisplay">Dick Length: 6.0 in</div>
+			<div id="statusDisplay" style="font-size: 12px; color: #666;"></div>
+			<div id="refreshRow" style="font-size: 12px; color: #666; margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+				<span id="refreshIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#cccccc;opacity:0;transition:opacity 0.2s, background 0.2s;"></span>
+				<span id="lastUpdatedDisplay">Waiting for first update…</span>
+				<span id="countdownDisplay" style="margin-left:auto;">Next in —</span>
+			</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        class JewDickApp {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.character = null;
+                this.currentScale = 1.0;
+                this.targetScale = 1.0;
+                this.marketCap = 0;
+                
+				this.init();
+				this.ws = null;
+				this.wsReconnectDelayMs = 2000; // start at 2s, backoff to max 10s
+				this.connectWebSocket();
+				this.loadCharacter();
+				this.fetchInitialMarketCap();
+				this.refreshIntervalMs = 10000; // match server broadcast cadence
+				this.nextTickAt = Date.now() + this.refreshIntervalMs;
+				this.startCountdownTimer();
+                this.animate();
+            }
+            
+            init() {
+                // Scene setup
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0xffffff);
+                
+                // Camera setup
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.set(0, 2, 5);
+                
+                // Renderer setup
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                document.getElementById('container').appendChild(this.renderer.domElement);
+                
+                // Controls
+                this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+                
+				// Balanced lighting (slightly brighter, softer)
+				const ambientLight = new THREE.AmbientLight(0xffffff, 0.26);
+				this.scene.add(ambientLight);
+
+				const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdadada, 0.28);
+				this.scene.add(hemiLight);
+
+				const mainLight = new THREE.DirectionalLight(0xffffff, 0.42);
+                mainLight.position.set(-2, 3, 2);
+                mainLight.castShadow = true;
+                mainLight.shadow.mapSize.width = 1024;
+                mainLight.shadow.mapSize.height = 1024;
+                mainLight.shadow.bias = -0.0005;
+                this.scene.add(mainLight);
+                
+                // Add ground plane for shadows
+                const groundGeometry = new THREE.PlaneGeometry(20, 20);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -2;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+                
+                // Window resize handler
+                window.addEventListener('resize', () => this.onWindowResize());
+            }
+            
+            loadCharacter() {
+                // Create a procedural pill: white top, green bottom (#55d292)
+                const pillGroup = new THREE.Group();
+
+                const radius = 0.7; // bigger pill
+                const cylinderHeight = 1.6; // taller pill
+                const segments = 32;
+
+                const whiteMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+                const greenMaterial = new THREE.MeshLambertMaterial({ color: 0x55d292 });
+
+                // Top hemisphere (white)
+                const topHemisphereGeometry = new THREE.SphereGeometry(
+                    radius,
+                    segments,
+                    Math.floor(segments / 2),
+                    0,
+                    Math.PI * 2,
+                    0,
+                    Math.PI / 2
+                );
+                const topHemisphere = new THREE.Mesh(topHemisphereGeometry, whiteMaterial);
+                topHemisphere.position.y = cylinderHeight / 2;
+                topHemisphere.castShadow = true;
+                topHemisphere.receiveShadow = true;
+
+                // Bottom hemisphere (green)
+                const bottomHemisphereGeometry = new THREE.SphereGeometry(
+                    radius,
+                    segments,
+                    Math.floor(segments / 2),
+                    0,
+                    Math.PI * 2,
+                    Math.PI / 2,
+                    Math.PI / 2
+                );
+                const bottomHemisphere = new THREE.Mesh(bottomHemisphereGeometry, greenMaterial);
+                bottomHemisphere.position.y = -cylinderHeight / 2;
+                bottomHemisphere.castShadow = true;
+                bottomHemisphere.receiveShadow = true;
+
+                // Split cylinder into two halves to color each side
+                const halfHeight = cylinderHeight / 2;
+
+                const topCylinderGeometry = new THREE.CylinderGeometry(radius, radius, halfHeight, segments);
+                const topCylinder = new THREE.Mesh(topCylinderGeometry, whiteMaterial);
+                topCylinder.position.y = halfHeight / 2;
+                topCylinder.castShadow = true;
+                topCylinder.receiveShadow = true;
+
+                const bottomCylinderGeometry = new THREE.CylinderGeometry(radius, radius, halfHeight, segments);
+                const bottomCylinder = new THREE.Mesh(bottomCylinderGeometry, greenMaterial);
+                bottomCylinder.position.y = -halfHeight / 2;
+                bottomCylinder.castShadow = true;
+                bottomCylinder.receiveShadow = true;
+
+                pillGroup.add(topHemisphere);
+                pillGroup.add(bottomHemisphere);
+                pillGroup.add(topCylinder);
+                pillGroup.add(bottomCylinder);
+
+                // Orient pill upright
+                pillGroup.position.set(0, 0, 0);
+
+				this.character = pillGroup;
+				this.scene.add(this.character);
+
+				// Add face texture on white half (front-facing)
+				const faceLoader = new THREE.TextureLoader();
+				faceLoader.load('cupseyface.png', (tex) => {
+					tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy?.() || 1;
+					const faceMaterial = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+					const faceSize = radius * 0.9;
+					const faceGeometry = new THREE.PlaneGeometry(faceSize, faceSize);
+					const faceMesh = new THREE.Mesh(faceGeometry, faceMaterial);
+					// Position roughly centered on the white top half, slightly forward on +Z
+					faceMesh.position.set(0, cylinderHeight / 2 - radius * 0.2, radius + 0.001);
+					faceMesh.renderOrder = 10;
+					pillGroup.add(faceMesh);
+				}, (progress) => {}, (err) => {
+					console.warn('Face texture load failed (cupseyface.png). Place it in /public');
+				});
+
+				// Add pill's dick
+				this.addDick();
+
+				// Show UI
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('ui').style.display = 'block';
+            }
+            
+			connectWebSocket() {
+				const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+				this.ws = new WebSocket(`${protocol}//${window.location.host}`);
+				
+				this.ws.onmessage = (event) => {
+					try {
+						const message = JSON.parse(event.data);
+						if (message.type === 'marketcap') {
+							this.updateMarketCap(message.data, message.fallback);
+						}
+					} catch {}
+				};
+				
+				this.ws.onopen = () => {
+					console.log('WebSocket connected');
+					this.wsReconnectDelayMs = 2000; // reset backoff on successful connect
+				};
+				
+				this.ws.onerror = (error) => {
+					console.error('WebSocket error:', error);
+				};
+				
+				this.ws.onclose = () => {
+					// Exponential backoff reconnect up to 10s
+					const delay = this.wsReconnectDelayMs;
+					this.wsReconnectDelayMs = Math.min(this.wsReconnectDelayMs * 2, 10000);
+					setTimeout(() => this.connectWebSocket(), delay);
+				};
+			}
+
+			startCountdownTimer() {
+				const countdownEl = document.getElementById('countdownDisplay');
+				setInterval(() => {
+					const remainingMs = Math.max(0, this.nextTickAt - Date.now());
+					const seconds = (remainingMs / 1000).toFixed(1);
+					countdownEl.textContent = `Next in ${seconds}s`;
+				}, 200);
+			}
+            
+			updateMarketCap(marketCap, isFallback = false) {
+				this.marketCap = marketCap;
+				// Pulse refresh indicator and update timestamps/counters
+				const indicator = document.getElementById('refreshIndicator');
+				const lastUpdatedEl = document.getElementById('lastUpdatedDisplay');
+				indicator.style.opacity = 1;
+				indicator.style.background = isFallback ? '#ff8800' : '#00aa44';
+				setTimeout(() => { indicator.style.opacity = 0; }, 250);
+				const now = new Date();
+				lastUpdatedEl.textContent = `Last updated ${now.toLocaleTimeString()}`;
+				this.nextTickAt = Date.now() + this.refreshIntervalMs;
+				
+				// Dick growth mapping: 7k => ~6in, 200k => ~45in (log10 scaling)
+				const baseline = 7000;
+				const gainPerLog10 = 26.79; // inches per decade to hit ~45in at 200k
+				const logTerm = Math.log(Math.max(marketCap, 1) / baseline) / Math.log(10);
+				this.dickTargetLengthInches = Math.max(4, Math.min(60, 6 + gainPerLog10 * logTerm));
+				
+				// Update UI (display in thousands)
+				const marketCapK = marketCap / 1000;
+				const marketCapText = `$${marketCapK.toLocaleString(undefined, { maximumFractionDigits: 2 })}K`;
+				document.getElementById('marketCapDisplay').innerHTML = `Market Cap: ${marketCapText}`;
+				document.getElementById('dickDisplay').innerHTML = 
+					`Dick Length: ${this.dickTargetLengthInches.toFixed(1)} in`;
+                
+                // Show status
+                const statusEl = document.getElementById('statusDisplay');
+                if (isFallback) {
+                    statusEl.innerHTML = '⚠️ Using simulated data (API rate limited)';
+                    statusEl.style.color = '#ff8800';
+                } else {
+                    statusEl.innerHTML = '🟢 Live data';
+                    statusEl.style.color = '#00aa44';
+                }
+            }
+            
+			addDick() {
+				// Procedural dick geometry attached to front of the pill
+				const dickGroup = new THREE.Group();
+				this.dickGroup = dickGroup;
+				this.dickLengthInches = 6;
+				this.dickTargetLengthInches = 6;
+				this.updateDickGeometry();
+				this.character.add(dickGroup);
+			}
+
+			// Fetch initial market cap once on load to avoid waiting for first WS tick
+			fetchInitialMarketCap() {
+				fetch('/api/marketcap')
+					.then(r => r.json())
+					.then(d => {
+						if (d && typeof d.marketCap === 'number') {
+							this.updateMarketCap(d.marketCap, d.fallback);
+						}
+					})
+					.catch(() => {});
+			}
+
+			updateDickGeometry() {
+				if (!this.dickGroup) return;
+				// Clear previous children
+				while (this.dickGroup.children.length > 0) {
+					this.dickGroup.remove(this.dickGroup.children[0]);
+				}
+				
+				// Convert inches to scene units (scene scale tuned for pill size)
+				const unitsPerInch = 0.095; // make each inch render longer
+				const lengthUnits = this.dickLengthInches;
+				const shaftLength = Math.max(0.5, lengthUnits * unitsPerInch);
+				// Girth grows with market cap (sublinear to avoid squaring)
+				const baseRadius = 0.14;
+				const lengthProgress = Math.max(0, Math.min(1, (lengthUnits - 6) / (45 - 6)));
+				const shaftRadius = baseRadius + 0.12 * Math.pow(lengthProgress, 0.7); // thicker growth per inch
+				
+				const shaftMaterial = new THREE.MeshLambertMaterial({ color: 0xffc0a0 });
+				const headMaterial = new THREE.MeshLambertMaterial({ color: 0xffa090 });
+				
+				// Shaft (cylinder oriented along Z)
+				const shaftGeometry = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 20);
+				const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+				shaft.rotation.x = Math.PI / 2;
+				shaft.castShadow = true;
+				shaft.receiveShadow = true;
+				
+				// Head (hemisphere at the tip)
+				const headRadius = shaftRadius * 1.15;
+				const headGeometry = new THREE.SphereGeometry(headRadius, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+				const head = new THREE.Mesh(headGeometry, headMaterial);
+				head.rotation.x = Math.PI / 2;
+				head.castShadow = true;
+				head.receiveShadow = true;
+				
+				// Position cylinder so its base touches the pill surface at z = radius
+				const pillRadius = 0.7;
+				const baseZ = pillRadius - 0.05; // base contact point
+				shaft.position.z = baseZ + shaftLength / 2;
+				head.position.z = baseZ + shaftLength;
+				
+				// Lower the whole group a bit
+				this.dickGroup.position.y = -0.25;
+				
+				this.dickGroup.add(shaft);
+				this.dickGroup.add(head);
+				
+				// Balls
+				const ballMaterial = new THREE.MeshLambertMaterial({ color: 0xffb090 });
+				const baseBall = 0.16;
+				const ballRadius = baseBall + 0.14 * Math.pow(lengthProgress, 0.7); // balls scale with cap too
+				const ballOffsetY = -ballRadius * 0.65; // sit slightly below shaft base
+				const ballOffsetZ = baseZ + 0.16; // near base
+				const leftBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
+				leftBall.position.set(-ballRadius * 1.05, ballOffsetY, ballOffsetZ);
+				leftBall.castShadow = true;
+				leftBall.receiveShadow = true;
+				const rightBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
+				rightBall.position.set(ballRadius * 1.05, ballOffsetY - 0.02, ballOffsetZ + 0.02);
+				rightBall.castShadow = true;
+				rightBall.receiveShadow = true;
+				this.dickGroup.add(leftBall);
+				this.dickGroup.add(rightBall);
+			}
+
+			animate() {
+                requestAnimationFrame(() => this.animate());
+                
+				// Smooth dick growth animation
+				if (Math.abs(this.dickLengthInches - this.dickTargetLengthInches) > 0.01) {
+					this.dickLengthInches += (this.dickTargetLengthInches - this.dickLengthInches) * 0.1;
+					this.updateDickGeometry();
+				}
+                
+                // Keep object seated on the ground plane (y = -2), regardless of scale
+                if (this.character) {
+                    const box = new THREE.Box3().setFromObject(this.character);
+                    const minY = box.min.y;
+                    const deltaToGround = -2 - minY;
+                    if (Math.abs(deltaToGround) > 1e-3) {
+                        this.character.position.y += deltaToGround;
+                    }
+                }
+                
+                this.controls.update();
+                this.renderer.render(this.scene, this.camera);
+            }
+            
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+        
+        // Initialize the app when the page loads
+        window.addEventListener('load', () => {
+            new JewDickApp();
+        });
+    </script>
+</body>
+</html> 
