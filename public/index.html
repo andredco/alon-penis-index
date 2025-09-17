@@ -79,6 +79,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
@@ -92,7 +93,7 @@
                 this.targetScale = 1.0;
                 this.marketCap = 0;
                 
-				this.init();
+                this.init();
 				// Jumpy dick animation params
 				this.bounceStartMs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 				this.bounceAmplitude = 0.10; // base jump height
@@ -103,6 +104,7 @@
 				this.connectWebSocket();
                 this.loadCharacter();
 				this.loadWealthyTraveler();
+				this.loadExternalModel();
 				this.fetchInitialMarketCap();
 				this.refreshIntervalMs = 10000; // match server broadcast cadence
 				this.nextTickAt = Date.now() + this.refreshIntervalMs;
@@ -114,6 +116,29 @@
                 // Scene setup
                 this.scene = new THREE.Scene();
                 this.scene.background = new THREE.Color(0xffffff);
+                // Wrap space.png around scene as a skydome (2D image on inverted sphere)
+                const texLoader = new THREE.TextureLoader();
+                const tryPaths = ['space.jpg', '/space.jpg', 'space.png', '/space.png'];
+                let done = false;
+                const tryLoad = (i) => {
+                    if (done || i >= tryPaths.length) return;
+                    const p = tryPaths[i];
+                    texLoader.load(p, (tex) => {
+                        done = true;
+                        if (THREE && THREE.sRGBEncoding !== undefined) {
+                            tex.encoding = THREE.sRGBEncoding;
+                        }
+                        const existing = this.scene.getObjectByName('spaceSkydome');
+                        if (existing) this.scene.remove(existing);
+                        const skyGeometry = new THREE.SphereGeometry(100, 64, 64);
+                        const skyMaterial = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, depthWrite: false });
+                        const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+                        sky.name = 'spaceSkydome';
+                        this.scene.add(sky);
+                        console.log('Skydome loaded from', p);
+                    }, undefined, () => tryLoad(i + 1));
+                };
+                tryLoad(0);
                 
                 // Camera setup
                 this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -124,6 +149,9 @@
                 this.renderer.setSize(window.innerWidth, window.innerHeight);
                 this.renderer.shadowMap.enabled = true;
                 this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                if (THREE && THREE.sRGBEncoding !== undefined) {
+                    this.renderer.outputEncoding = THREE.sRGBEncoding;
+                }
                 document.getElementById('container').appendChild(this.renderer.domElement);
                 
                 // Controls
@@ -148,7 +176,7 @@
                 
                 // Add ground plane for shadows
                 const groundGeometry = new THREE.PlaneGeometry(20, 20);
-                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
                 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
                 ground.rotation.x = -Math.PI / 2;
                 ground.position.y = -2;
@@ -308,6 +336,46 @@
 					});
 				} catch (e) {
 					console.warn('FBX loader not available.', e);
+				}
+			}
+
+			// Load user's external model: prefer GLB at /public/source/Untitled.glb
+			loadExternalModel() {
+				try {
+					const gltfLoader = new THREE.GLTFLoader();
+					gltfLoader.load('source/Untitled.glb', (gltf) => {
+						const model = gltf.scene || gltf.scenes?.[0];
+						if (!model) return;
+						// Auto-fit scale to target height so it's visible
+						const tempBox = new THREE.Box3().setFromObject(model);
+						const size = new THREE.Vector3();
+						tempBox.getSize(size);
+						const targetHeight = 1.6; // units tall
+						let scaleFactor = 1.0;
+						if (size.y > 0.0001) {
+							scaleFactor = targetHeight / size.y;
+						}
+						model.scale.setScalar(scaleFactor);
+						// Place near the pill and in view
+						model.position.set(-1.5, 0, 1.4);
+						model.traverse((child) => {
+							if (child.isMesh) {
+								child.castShadow = true;
+								child.receiveShadow = true;
+							}
+						});
+						this.scene.add(model);
+						// Seat on ground
+						const box = new THREE.Box3().setFromObject(model);
+						const minY = box.min.y;
+						const delta = -2 - minY;
+						if (Math.abs(delta) > 1e-3) model.position.y += delta;
+						console.log('Loaded GLB model at', model.position, 'scale', scaleFactor);
+					}, undefined, (err) => {
+						console.warn('Could not load source/Untitled.glb. Ensure the file is in /public/source', err);
+					});
+				} catch (e) {
+					console.warn('GLTF loader not available.', e);
 				}
 			}
 
