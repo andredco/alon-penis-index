@@ -51,7 +51,7 @@ A Node.js web application that displays a 3D character that scales in size based
 - Endpoint: `/api/marketcap/:tokenAddress`
 
 ### Character Features
-- Loads the `Wealthy_Traveler_0715225309_texture.fbx` model
+- Loads the `CHJAO.Fbx` model
 - Adds procedurally generated anatomy
 - Smooth scaling animations
 - Idle bobbing animation

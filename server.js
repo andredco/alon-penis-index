@@ -109,49 +109,14 @@ app.get('/api/marketcap/:tokenAddress?', async (req, res) => {
 
 // Create WebSocket server for real-time updates
 const server = app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`服务已启动: http://localhost:${PORT}`);
 });
 
 const wss = new WebSocket.Server({ server });
 
-// Broadcast market cap updates to all connected clients
 let lastKnownMarketCap = DEFAULT_MARKETCAP; // Initial value only; no BTC/simulation fallback
 
-setInterval(async () => {
-    try {
-        let marketCap = null;
-        // Prefer DexScreener if TOKEN_MINT is configured
-        if (TOKEN_MINT) {
-            const ds = await fetchDexScreenerMarketCap(TOKEN_MINT);
-            if (ds && ds.marketCap != null) {
-                marketCap = ds.marketCap;
-            }
-        }
-        if (!marketCap && MARKETCAP_SOURCE_URL && /^https?:\/\//i.test(MARKETCAP_SOURCE_URL)) {
-            try {
-                const { data } = await axios.get(MARKETCAP_SOURCE_URL, { timeout: 10000, headers: { 'Accept': 'application/json' } });
-                const dsParsed = parseDexScreenerResponse(data);
-                if (dsParsed && dsParsed.marketCap != null) {
-                    marketCap = dsParsed.marketCap;
-                } else if (data && typeof data.marketCap === 'number') {
-                    marketCap = data.marketCap;
-                }
-            } catch {}
-        }
-        if (marketCap != null) {
-            lastKnownMarketCap = marketCap; // Update last known value on success
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'marketcap', data: marketCap }));
-                }
-            });
-        }
-    } catch (error) {
-        console.error('Error broadcasting market cap:', error);
-        // No simulation or BTC fallback; keep lastKnownMarketCap unchanged
-    }
-}, 10000); // Update every 10 seconds
-
+// Broadcast market cap updates to all connected clients
 wss.on('connection', (ws) => {
     console.log('Client connected');
     // Send the latest known market cap immediately upon connection
@@ -161,4 +126,20 @@ wss.on('connection', (ws) => {
     ws.on('close', () => {
         console.log('Client disconnected');
     });
-}); 
+});
+
+setInterval(() => {
+    // Fetch market cap from DexScreener if TOKEN_MINT is configured
+    if (TOKEN_MINT) {
+        fetchDexScreenerMarketCap(TOKEN_MINT).then(ds => {
+            if (ds && ds.marketCap != null) {
+                lastKnownMarketCap = ds.marketCap;
+                wss.clients.forEach(client => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ type: 'marketcap', data: lastKnownMarketCap }));
+                    }
+                });
+            }
+        });
+    }
+}, 5000); // Update every 5 seconds 

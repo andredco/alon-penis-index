@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUMPDICK - PUMP THE DICK</title>
-    <meta name="description" content="PUMPDICK - PUMP THE DICK. Real-time market cap visual with a pill mascot that grows as your token pumps.">
-    <meta property="og:title" content="PUMPDICK - PUMP THE DICK">
-    <meta property="og:description" content="Real-time market cap visual with a pill mascot that grows as your token pumps.">
+    <title>币安主题可视化</title>
+    <meta name="description" content="币安主题的实时市值可视化，模型随市值变化。">
+    <meta property="og:title" content="币安主题可视化">
+    <meta property="og:description" content="币安主题的实时市值可视化，模型随市值变化。">
     <meta property="og:type" content="website">
     <style>
         body {
             margin: 0;
-            background: #ffffff;
+            background: #0B0E11; /* Binance dark */
             overflow: hidden;
             font-family: 'Arial', sans-serif;
         }
@@ -26,13 +26,13 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            color: #333;
+            color: #EAECEF; /* Binance light text */
             z-index: 100;
-            background: rgba(255,255,255,0.9);
+            background: rgba(11,14,17,0.92);
             padding: 20px;
             border-radius: 10px;
-            border: 2px solid #ccc;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #F3BA2F; /* Binance yellow */
+            box-shadow: 0 6px 16px rgba(243,186,47,0.18);
         }
         
         #marketCapDisplay {
@@ -50,28 +50,90 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #333;
+            color: #EAECEF;
             font-size: 20px;
             z-index: 100;
-            background: rgba(255,255,255,0.9);
+            background: rgba(11,14,17,0.92);
             padding: 20px;
             border-radius: 10px;
-            border: 2px solid #ccc;
+            border: 2px solid #F3BA2F;
         }
+
+        /* Goal widget */
+        #goalCard {
+            margin-top: 8px;
+            padding: 12px 14px;
+            background: linear-gradient(180deg, #F8D57E 0%, #F3BA2F 100%);
+            border: 2px solid #F3BA2F;
+            border-radius: 12px;
+            box-shadow: 0 6px 14px rgba(243,186,47,0.35);
+            color: #0B0E11;
+            width: 220px;
+        }
+        #goalTitle { font-weight: 800; font-size: 14px; letter-spacing: 0.3px; }
+        #goalNumbers { margin-top: 4px; font-size: 13px; }
+        #goalBarWrap {
+            width: 100%; height: 10px; background: rgba(255,255,255,0.7); border-radius: 6px; margin-top: 8px;
+            overflow: hidden; border: 1px solid rgba(85,210,146,0.6);
+        }
+        #goalBar {
+            height: 100%; background: linear-gradient(90deg, #FFDE7A, #F3BA2F); width: 0%; border-radius: 6px; transition: width 300ms ease;
+        }
+        #superBadge {
+            display: inline-block; margin-top: 8px; background: #0cc47b; color: #fff; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700;
+        }
+        #goalCard.celebrate { animation: pulseGlow 850ms ease; }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 rgba(47,208,148,0.6); }
+            50% { box-shadow: 0 0 28px rgba(47,208,148,0.8); }
+            100% { box-shadow: 0 6px 14px rgba(85,210,146,0.25); }
+        }
+
+        /* Top center banner */
+        #topBanner {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(243,186,47,0.95);
+            color: #0B0E11;
+            font-weight: 800;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid #F3BA2F;
+            z-index: 120;
+            box-shadow: 0 4px 12px rgba(243,186,47,0.25);
+            letter-spacing: 0.5px;
+        }
+
+        /* Goals list */
+        #goalList { margin-top: 10px; padding: 10px 12px; background: rgba(11,14,17,0.92); border: 1px solid #F3BA2F; border-radius: 10px; width: 320px; max-height: none; overflow: visible; color: #EAECEF; }
+        .goalItem { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #EAECEF; padding: 4px 0; }
+        .goalDot { width: 8px; height: 8px; border-radius: 999px; background: #FFDE7A; border: 1px solid #F3BA2F; }
+        .goalItem.active .goalDot { background: #F3BA2F; }
+        .goalItem.done { color: #C1C7CD; text-decoration: line-through; opacity: 0.8; }
     </style>
 </head>
 <body>
     <div id="container">
-        <div id="loading">Loading character...</div>
+        <div id="topBanner">市值越高，CZ 的丁丁越大</div>
+        <div id="loading">正在加载角色…</div>
         <div id="ui" style="display: none;">
-            <div id="marketCapDisplay">Market Cap: Loading...</div>
-            <div id="scaleDisplay">Character Scale: 1.0x</div>
-			<div id="dickDisplay">Dick Length: 6.0 in</div>
-            <div id="statusDisplay" style="font-size: 12px; color: #666;"></div>
+            <div id="marketCapDisplay">市值：加载中…</div>
+            <div id="scaleDisplay">模型缩放：1.0x</div>
+            <div id="dickDisplay">长度：-- 英寸</div>
+            <div id="statusDisplay" style="font-size: 12px; color: #C1C7CD;"></div>
+                <div id="goalCard" style="width:320px;">
+                    <div id="goalTitle">市值目标</div>
+                    <div id="goalNumbers">下一目标：<b><span id="nextGoal">50.0K</span></b> • <b><span id="goalProgress">0%</span></b></div>
+                    <div id="goalBarWrap"><div id="goalBar"></div></div>
+                    <div id="superBadge" style="display:none;">100K 超级喷发！</div>
+                </div>
+                <div id="goalList"></div>
 			<div id="refreshRow" style="font-size: 12px; color: #666; margin-top: 6px; display: flex; align-items: center; gap: 8px;">
 				<span id="refreshIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#cccccc;opacity:0;transition:opacity 0.2s, background 0.2s;"></span>
-				<span id="lastUpdatedDisplay">Waiting for first update…</span>
-				<span id="countdownDisplay" style="margin-left:auto;">Next in —</span>
+				<span id="lastUpdatedDisplay">等待首次更新…</span>
+				<span id="countdownDisplay" style="margin-left:auto;">下次更新 —</span>
 			</div>
         </div>
     </div>
@@ -88,10 +150,11 @@
                 this.scene = null;
                 this.camera = null;
                 this.renderer = null;
-                this.character = null;
-                this.currentScale = 1.0;
-                this.targetScale = 1.0;
+                this.avatar = null;
                 this.marketCap = 0;
+                // Rolling goals (emit whenever marketCap crosses these)
+                this.nextEmissionGoal = 50000; // 50k
+                this.nextSuperEmissionGoal = 100000; // 100k
                 
                 this.init();
 				// Jumpy dick animation params
@@ -102,9 +165,8 @@
 				this.ws = null;
 				this.wsReconnectDelayMs = 2000; // start at 2s, backoff to max 10s
 				this.connectWebSocket();
-                this.loadCharacter();
-				this.loadWealthyTraveler();
-				this.loadExternalModel();
+                // Load new primary model
+                this.loadPrimaryModel();
 				this.fetchInitialMarketCap();
 				this.refreshIntervalMs = 10000; // match server broadcast cadence
 				this.nextTickAt = Date.now() + this.refreshIntervalMs;
@@ -115,34 +177,11 @@
             init() {
                 // Scene setup
                 this.scene = new THREE.Scene();
-                this.scene.background = new THREE.Color(0xffffff);
-                // Wrap space.png around scene as a skydome (2D image on inverted sphere)
-                const texLoader = new THREE.TextureLoader();
-                const tryPaths = ['space.jpg', '/space.jpg', 'space.png', '/space.png'];
-                let done = false;
-                const tryLoad = (i) => {
-                    if (done || i >= tryPaths.length) return;
-                    const p = tryPaths[i];
-                    texLoader.load(p, (tex) => {
-                        done = true;
-                        if (THREE && THREE.sRGBEncoding !== undefined) {
-                            tex.encoding = THREE.sRGBEncoding;
-                        }
-                        const existing = this.scene.getObjectByName('spaceSkydome');
-                        if (existing) this.scene.remove(existing);
-                        const skyGeometry = new THREE.SphereGeometry(100, 64, 64);
-                        const skyMaterial = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, depthWrite: false });
-                        const sky = new THREE.Mesh(skyGeometry, skyMaterial);
-                        sky.name = 'spaceSkydome';
-                        this.scene.add(sky);
-                        console.log('Skydome loaded from', p);
-                    }, undefined, () => tryLoad(i + 1));
-                };
-                tryLoad(0);
+                this.scene.background = new THREE.Color(0x0B0E11); // Binance dark
                 
                 // Camera setup
                 this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                this.camera.position.set(0, 2, 5);
+                this.camera.position.set(0, 3.6, 6.2);
                 
                 // Renderer setup
                 this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -158,9 +197,12 @@
                 this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
                 this.controls.enableDamping = true;
                 this.controls.dampingFactor = 0.05;
+                // Aim slightly higher to reduce downward tilt on first load
+                this.controls.target.set(0, 1.1, 0);
+                this.controls.update();
                 
 				// Balanced lighting (slightly brighter, softer)
-				const ambientLight = new THREE.AmbientLight(0xffffff, 0.26);
+		const ambientLight = new THREE.AmbientLight(0xffffff, 0.26);
                 this.scene.add(ambientLight);
                 
 				const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdadada, 0.28);
@@ -174,18 +216,18 @@
                 mainLight.shadow.bias = -0.0005;
                 this.scene.add(mainLight);
                 
-                // Add ground plane for shadows
-                const groundGeometry = new THREE.PlaneGeometry(20, 20);
-                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x000000 });
-                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-                ground.rotation.x = -Math.PI / 2;
-                ground.position.y = -2;
-                ground.receiveShadow = true;
-                this.scene.add(ground);
+                // Ground plane removed per request (keep logical ground at y = -2)
                 
                 // Window resize handler
                 window.addEventListener('resize', () => this.onWindowResize());
             }
+
+			loadPrimaryModel() {
+				// Load primary FBX character with textures from CHJAO.fbm and add environment
+				this.loadWealthyTraveler();
+				// 移除月球地面，改为平台
+				this.addBinancePlatform();
+			}
             
             loadCharacter() {
                 // Create a procedural pill: white top, green bottom (#55d292)
@@ -252,6 +294,7 @@
                 pillGroup.position.set(0, 0, 0);
 
 				this.character = pillGroup;
+				this.avatar = pillGroup;
 				this.scene.add(this.character);
 
 				// Add face texture on white half (front-facing)
@@ -292,12 +335,12 @@
                 };
                 
 				this.ws.onopen = () => {
-                    console.log('WebSocket connected');
+					console.log('WebSocket 已连接');
 					this.wsReconnectDelayMs = 2000; // reset backoff on successful connect
                 };
                 
 				this.ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
+					console.error('WebSocket 错误:', error);
                 };
 				
 				this.ws.onclose = () => {
@@ -308,13 +351,169 @@
 				};
 			}
 
-			loadWealthyTraveler() {
+			// 添加币安风格平台（角色脚下）
+			addBinancePlatform() {
+				const platformGroup = new THREE.Group();
+				// 主平台：圆柱体
+				const radius = 3.2;
+				const height = 0.3;
+				this.platformHeight = height;
+				const mainMat = new THREE.MeshStandardMaterial({ color: 0x0B0E11, metalness: 0.3, roughness: 0.4 });
+				const rimMat = new THREE.MeshStandardMaterial({ color: 0xF3BA2F, metalness: 0.5, roughness: 0.35 });
+				const main = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height, 64), mainMat);
+				main.castShadow = true; main.receiveShadow = true;
+				platformGroup.add(main);
+
+				// 边缘金色环
+				const rim = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.98, 0.06, 16, 64), rimMat);
+				rim.rotation.x = Math.PI / 2;
+				platformGroup.add(rim);
+
+				// 顶面放置 Binance 标志（使用 public/binance.png 纹理）
+				const texLoader = new THREE.TextureLoader();
+				texLoader.load('binance.png', (tex) => {
+					if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
+					tex.anisotropy = this.renderer?.capabilities?.getMaxAnisotropy?.() || 1;
+					const logoMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+					const size = radius * 1.6; // 合理占比
+					const logo = new THREE.Mesh(new THREE.PlaneGeometry(size, size), logoMat);
+					logo.rotation.x = -Math.PI / 2;
+					logo.position.y = height/2 + 0.01;
+					logo.renderOrder = 10;
+					platformGroup.add(logo);
+				});
+
+				// 位置到更高的平台顶（可调整）
+				this.platformTopY = -1.2;
+				platformGroup.position.y = this.platformTopY - height/2;
+				this.platform = platformGroup;
+				this.scene.add(platformGroup);
+			}
+
+			// 使角色脚底贴合平台：临时隐藏附加物以避免影响包围盒
+			seatCharacterToPlatform() {
+				if (!this.character) return;
+				this.character.updateMatrixWorld(true);
+				const groundY = this.platformTopY ?? -2.0;
+				// Prefer bone-based minY (works better for skinned meshes)
+				let minY = Infinity;
+				this.character.traverse((obj) => {
+					if (obj.isBone) {
+						obj.updateMatrixWorld(true);
+						const p = new THREE.Vector3();
+						obj.getWorldPosition(p);
+						if (p.y < minY) minY = p.y;
+					}
+				});
+				// Fallback to Box3 if no bones found
+				if (!Number.isFinite(minY)) {
+					let restore = false;
+					if (this.dickGroup && this.dickGroup.visible !== false) { this.dickGroup.visible = false; restore = true; }
+					const box = new THREE.Box3().setFromObject(this.character);
+					if (restore) this.dickGroup.visible = true;
+					minY = box.min.y;
+				}
+				const delta = groundY - minY;
+				if (Math.abs(delta) > 1e-3) this.character.position.y += delta;
+			}
+
+			// 将平台移动到角色脚底，避免包围盒误差导致的缝隙
+			updatePlatformUnderFeet() {
+				if (!this.platform || !this.character) return;
+				this.character.updateMatrixWorld(true);
+				let footY = Infinity;
+				this.character.traverse((obj) => {
+					if (obj.isBone) {
+						obj.updateMatrixWorld(true);
+						const p = new THREE.Vector3();
+						obj.getWorldPosition(p);
+						if (p.y < footY) footY = p.y;
+					}
+				});
+				if (!Number.isFinite(footY)) {
+					let restore = false;
+					if (this.dickGroup && this.dickGroup.visible !== false) { this.dickGroup.visible = false; restore = true; }
+					const box = new THREE.Box3().setFromObject(this.character);
+					if (restore) this.dickGroup.visible = true;
+					footY = box.min.y;
+				}
+				const height = this.platformHeight ?? 0.3;
+				const smallGap = 0.0; // set to 0 for flush contact
+				const targetTop = footY - smallGap;
+
+				this.platformTopY = targetTop;
+				this.platform.position.y = targetTop - height/2;
+			}
+
+			// Load a moon ground plane from an FBX model and apply 8k texture
+			loadMoonGround() {
 				try {
 					const loader = new THREE.FBXLoader();
-					loader.load('Wealthy_Traveler_0715225309_texture.fbx', (object) => {
-						this.traveler = object;
-						this.traveler.scale.setScalar(0.015); // make bigger
-						this.traveler.position.set(0.1, 0, 4.5); // slightly left and forward
+					loader.load('cinematic-moon.fbx', (object) => {
+						// Try to find a mesh in the FBX; otherwise create a fallback plane
+						let moonMesh = null;
+						object.traverse((child) => {
+							if (!moonMesh && child.isMesh) moonMesh = child;
+						});
+						if (!moonMesh) {
+							moonMesh = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+                        moonMesh.rotation.x = -Math.PI / 2;
+                        moonMesh.position.y = -40.3;
+						}
+						// Scale moon (20x bigger than previous)
+						moonMesh.scale.setScalar(35.4);
+						// Apply moon texture
+						const texLoader = new THREE.TextureLoader();
+						texLoader.load('8k_moon.jpeg', (tex) => {
+							if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
+							tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+							tex.repeat.set(1, 1);
+							const mat = new THREE.MeshLambertMaterial({ map: tex });
+							moonMesh.material = mat;
+						});
+						// Orient like a ground plane
+                        moonMesh.rotation.x = -Math.PI / 2;
+                        moonMesh.position.y = -37.1;
+                        moonMesh.rotation.x = -Math.PI / 2;
+                        moonMesh.position.y = -37.1;
+						moonMesh.receiveShadow = true;
+						this.scene.add(moonMesh);
+					}, undefined, (err) => {
+						console.warn('Could not load cinematic-moon.fbx; falling back to textured plane.', err);
+						const texLoader = new THREE.TextureLoader();
+						texLoader.load('8k_moon.jpeg', (tex) => {
+							if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
+							tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+							const mesh = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshLambertMaterial({ map: tex }));
+                        mesh.rotation.x = -Math.PI / 2;
+                        mesh.position.y = -50;
+							mesh.receiveShadow = true;
+							this.scene.add(mesh);
+						});
+					});
+				} catch (e) {
+					console.warn('FBX loader not available for moon; using textured plane.', e);
+						const texLoader = new THREE.TextureLoader();
+						texLoader.load('8k_moon.jpeg', (tex) => {
+						if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
+							const mesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.MeshLambertMaterial({ map: tex }));
+						mesh.rotation.x = -Math.PI / 2;
+						mesh.position.y = -2;
+						mesh.scale.setScalar(2.4);
+						mesh.receiveShadow = true;
+						this.scene.add(mesh);
+					});
+				}
+			}
+
+		loadWealthyTraveler() {
+				try {
+					const loader = new THREE.FBXLoader();
+				loader.setResourcePath('CHJAO.fbm/');
+				loader.load('CHJAO.Fbx', (object) => {
+                    this.traveler = object;
+                    this.traveler.scale.setScalar(0.03); // make traveler bigger
+						this.traveler.position.set(0.0, 0, 0.6); // a bit more backwards (closer to platform)
 						this.traveler.traverse((child) => {
 							if (child.isMesh) {
 								child.castShadow = true;
@@ -322,17 +521,18 @@
 							}
 						});
 						this.scene.add(this.traveler);
-						// Seat traveler on ground (y = -2)
-						const tBox = new THREE.Box3().setFromObject(this.traveler);
-						const tMinY = tBox.min.y;
-						const tDeltaToGround = -2 - tMinY;
-						if (Math.abs(tDeltaToGround) > 1e-3) {
-							this.traveler.position.y += tDeltaToGround;
-						}
-						// Add tiny dick to traveler
-						this.addTravelerDick();
-					}, undefined, (err) => {
-						console.warn('Unable to load Wealthy Traveler FBX. Ensure the file exists in /public.', err);
+ 					// Use traveler as the active character/avatar for downstream logic
+ 					this.character = this.traveler;
+ 					this.avatar = this.traveler;
+					// 将角色坐落在平台顶
+					this.seatCharacterToPlatform();
+                    // Attach growth-driven dick to traveler and show UI
+					this.addDick();
+					this.seatCharacterToPlatform();
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('ui').style.display = 'block';
+				}, undefined, (err) => {
+					console.warn('Unable to load CHJAO FBX. Ensure the file exists in /public.', err);
 					});
 				} catch (e) {
 					console.warn('FBX loader not available.', e);
@@ -368,8 +568,8 @@
 						// Seat on ground
 						const box = new THREE.Box3().setFromObject(model);
 						const minY = box.min.y;
-						const delta = -2 - minY;
-						if (Math.abs(delta) > 1e-3) model.position.y += delta;
+						const deltaToGround = this.platformTopY ?? -6.0 - minY;
+						if (Math.abs(deltaToGround) > 1e-3) model.position.y += deltaToGround;
 						console.log('Loaded GLB model at', model.position, 'scale', scaleFactor);
 					}, undefined, (err) => {
 						console.warn('Could not load source/Untitled.glb. Ensure the file is in /public/source', err);
@@ -435,7 +635,7 @@
 				setInterval(() => {
 					const remainingMs = Math.max(0, this.nextTickAt - Date.now());
 					const seconds = (remainingMs / 1000).toFixed(1);
-					countdownEl.textContent = `Next in ${seconds}s`;
+					countdownEl.textContent = `下次更新 ${seconds}s`;
 				}, 200);
             }
             
@@ -448,42 +648,180 @@
 				indicator.style.background = isFallback ? '#ff8800' : '#00aa44';
 				setTimeout(() => { indicator.style.opacity = 0; }, 250);
 				const now = new Date();
-				lastUpdatedEl.textContent = `Last updated ${now.toLocaleTimeString()}`;
+				lastUpdatedEl.textContent = `上次更新 ${now.toLocaleTimeString()}`;
 				this.nextTickAt = Date.now() + this.refreshIntervalMs;
 				
-				// Dick growth mapping: 7k => ~6in, 200k => ~45in (log10 scaling)
+                // 长度增长映射：7k => ~6英寸，200k => ~45英寸（对数缩放）
 				const baseline = 7000;
 				const gainPerLog10 = 26.79; // inches per decade to hit ~45in at 200k
 				const logTerm = Math.log(Math.max(marketCap, 1) / baseline) / Math.log(10);
-				this.dickTargetLengthInches = Math.max(4, Math.min(60, 6 + gainPerLog10 * logTerm));
+                this.dickTargetLengthInches = Math.max(4, Math.min(60, 6 + gainPerLog10 * logTerm));
 				
-				// Update UI (display in thousands)
+                // 更新UI（以千为单位显示）
 				const marketCapK = marketCap / 1000;
 				const marketCapText = `$${marketCapK.toLocaleString(undefined, { maximumFractionDigits: 2 })}K`;
-				document.getElementById('marketCapDisplay').innerHTML = `Market Cap: ${marketCapText}`;
-				document.getElementById('dickDisplay').innerHTML = 
-					`Dick Length: ${this.dickTargetLengthInches.toFixed(1)} in`;
+				document.getElementById('marketCapDisplay').innerHTML = `市值：${marketCapText}`;
+                document.getElementById('dickDisplay').innerHTML = 
+                    `长度：${this.dickTargetLengthInches.toFixed(1)} 英寸`;
+
+                // 更新目标列表（每5万）
+                const step = 50000;
+                // Initialize next goal aligned to current cap
+                if (!this.nextEmissionGoal || marketCap < step) {
+                    this.nextEmissionGoal = (Math.floor(marketCap / step) + 1) * step;
+                }
+                const nextGoalVal = this.nextEmissionGoal;
+				document.getElementById('nextGoal').textContent = `${(nextGoalVal/1000).toFixed(1)}K`;
+                const progressPct = Math.min(99, ((marketCap - (nextGoalVal - step)) / step) * 100);
+				document.getElementById('goalProgress').textContent = `${progressPct.toFixed(0)}%`;
+				document.getElementById('goalBar').style.width = `${progressPct}%`;
+                // Render the full goals list on every update
+                this.renderGoalsList(marketCap);
+
+                // 每跨越5万触发一次喷发
+                while (marketCap >= this.nextEmissionGoal) {
+                    setTimeout(() => this.emitLiquidBurst(false), 1500); // delay normal bust by 1.5s
+                    const card = document.getElementById('goalCard');
+                    card.classList.add('celebrate');
+                    setTimeout(()=>card.classList.remove('celebrate'), 900);
+                    this.nextEmissionGoal += step;
+                    this.renderGoalsList(marketCap);
+                }
+
+                // 每跨越10万触发超级喷发
+                const superStep = 100000;
+                if (!this.nextSuperEmissionGoal || marketCap < superStep) {
+                    this.nextSuperEmissionGoal = (Math.floor(marketCap / superStep) + 1) * superStep;
+                }
+                while (marketCap >= this.nextSuperEmissionGoal) {
+                    setTimeout(() => this.emitLiquidBurst(true), 1500); // delay super bust by 1.5s
+                    const badge = document.getElementById('superBadge');
+                    badge.style.display = 'inline-block';
+                    badge.textContent = `${(this.nextSuperEmissionGoal/1000).toLocaleString()}K 超级喷发！`;
+                    setTimeout(()=>{ badge.style.display = 'none'; }, 3000);
+                    this.nextSuperEmissionGoal += superStep;
+                    this.renderGoalsList(marketCap);
+                }
                 
-                // Show status
+                // 显示数据状态
                 const statusEl = document.getElementById('statusDisplay');
                 if (isFallback) {
-                    statusEl.innerHTML = '⚠️ Using simulated data (API rate limited)';
+                    statusEl.innerHTML = '⚠️ 使用模拟数据（API 受限）';
                     statusEl.style.color = '#ff8800';
                 } else {
-                    statusEl.innerHTML = '🟢 Live data';
+                    statusEl.innerHTML = '🟢 实时数据（使用 Dexscreener API，更新可能略有延迟）';
                     statusEl.style.color = '#00aa44';
                 }
             }
-            
-			addDick() {
-				// Procedural dick geometry attached to front of the pill
-				const dickGroup = new THREE.Group();
-				this.dickGroup = dickGroup;
-				this.dickLengthInches = 6;
-				this.dickTargetLengthInches = 6;
-				this.updateDickGeometry();
-				this.character.add(dickGroup);
+
+			renderGoalsList(currentCap) {
+				const el = document.getElementById('goalList');
+				if (!el) return;
+                const goals = [
+                    { v: 50000, label: '50k：小喷发' },
+                    { v: 100000, label: '100k：超级喷发' },
+                    { v: 150000, label: '150k：额外喷发' },
+                    { v: 200000, label: '200k：颜色变为黑色' },
+                    { v: 300000, label: '300k：巨喷' },
+                    { v: 400000, label: '400k：社区庆祝' },
+                    { v: 500000, label: '500k：超巨喷发' },
+                    { v: 750000, label: '750k：终极喷发' },
+                    { v: 1000000, label: '1M：疯狂喷发' }
+                ];
+                const lengthFor = (cap) => {
+                    const baseline = 7000;
+                    const gainPerLog10 = 26.79;
+                    const logTerm = Math.log(Math.max(cap, 1) / baseline) / Math.log(10);
+                    return Math.max(4, Math.min(60, 6 + gainPerLog10 * logTerm));
+                };
+				el.innerHTML = goals.map(g => {
+					const cls = currentCap >= g.v ? 'goalItem done' : (currentCap >= g.v - 5000 ? 'goalItem active' : 'goalItem');
+                    const inches = lengthFor(g.v).toFixed(1);
+                    return `<div class="${cls}"><span class="goalDot"></span><span>${(g.v/1000).toFixed(0)}K — ${g.label} • ~${inches} in</span></div>`;
+				}).join('');
 			}
+
+            emitLiquidBurst(isSuper) {
+				if (!this.dickGroup) return;
+				if (!this.particles) this.particles = [];
+                // Determine emission origin at the head tip in world space
+                let worldOrigin;
+                let forwardWorld;
+                if (this.dickHeadMesh) {
+                    worldOrigin = new THREE.Vector3();
+                    this.dickHeadMesh.updateMatrixWorld();
+                    this.dickHeadMesh.getWorldPosition(worldOrigin);
+                    const headQuat = new THREE.Quaternion();
+                    this.dickHeadMesh.getWorldQuaternion(headQuat);
+                    forwardWorld = new THREE.Vector3(0, 0, 1).applyQuaternion(headQuat).normalize();
+                    const tipOffset = (this.dickHeadRadius || 0.02) * 0.9;
+                    worldOrigin.add(forwardWorld.clone().multiplyScalar(tipOffset));
+                } else {
+                    const origin = new THREE.Vector3(0, 0, 0.03);
+                    worldOrigin = origin.clone().applyMatrix4(this.dickGroup.matrixWorld);
+                    forwardWorld = new THREE.Vector3(0, 0, 1).applyQuaternion(this.traveler?.quaternion || new THREE.Quaternion()).normalize();
+                }
+
+                const count = isSuper ? 1400 : 520;
+				for (let i = 0; i < count; i++) {
+                    const sizeMul = isSuper ? 3.8 : 2.6;
+                    const dropSize = (0.035 + Math.random()*0.07) * sizeMul;
+                    const geom = new THREE.SphereGeometry(dropSize, 8, 8);
+                    const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+					const p = new THREE.Mesh(geom, mat);
+                    p.position.copy(worldOrigin);
+                    const forwardSpeed = isSuper ? 4.5 : 3.0;
+                    const randomJitter = new THREE.Vector3((Math.random()-0.5)*1.4, Math.random()*1.2, (Math.random()-0.5)*1.4);
+                    p.userData.vel = forwardWorld.clone().multiplyScalar(forwardSpeed).add(randomJitter);
+                    p.userData.life = 4.0 + Math.random()*0.8; // ~4s lifespan
+					p.userData.age = 0;
+					this.scene.add(p);
+					this.particles.push(p);
+				}
+			}
+            
+            addDick() {
+                // 在模型前方添加临时位置的器官，后续可根据指引微调
+                const host = this.traveler || this.character || this.avatar;
+                if (!host) return;
+
+                // 移除旧分组
+                if (this.dickGroup && this.dickGroup.parent) {
+                    this.dickGroup.parent.remove(this.dickGroup);
+                }
+                this.dickGroup = new THREE.Group();
+
+                // 以主模型包围盒估算放置位置：模型高度的40%处，位于模型前方
+                const box = new THREE.Box3().setFromObject(host);
+                const size = new THREE.Vector3();
+                const center = new THREE.Vector3();
+                box.getSize(size);
+                box.getCenter(center);
+                const height = size.y || 1;
+				const placeY = box.min.y + height * 0.40;
+				// 使用模型朝向(+Z)作为前方向
+				const hostQuat = new THREE.Quaternion();
+				host.getWorldQuaternion(hostQuat);
+				const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(hostQuat).normalize();
+				const offsetDist = 0; // 紧贴主体
+				const yLift = Math.max(0.15, height * 0.09); // 更高一些
+				const basePos = new THREE.Vector3(center.x, placeY, center.z)
+					.addScaledVector(forward, offsetDist)
+					.add(new THREE.Vector3(0, yLift, 0));
+
+				this.dickGroup.position.copy(basePos);
+				this.dickGroup.quaternion.copy(hostQuat);
+				// Convert world transform to host local and parent
+				const invHost = new THREE.Matrix4().copy(host.matrixWorld).invert();
+				this.dickGroup.applyMatrix4(invHost);
+				host.add(this.dickGroup);
+
+                // 初始化长度并生成几何
+				this.dickLengthInches = this.dickLengthInches || 4.5; // 初始更小
+				this.dickTargetLengthInches = this.dickTargetLengthInches || 4.5;
+                this.dickBaseY = this.dickGroup.position.y;
+                this.updateDickGeometry();
+            }
 
 			// Fetch initial market cap once on load to avoid waiting for first WS tick
 			fetchInitialMarketCap() {
@@ -504,56 +842,60 @@
 					this.dickGroup.remove(this.dickGroup.children[0]);
 				}
 				
-				// Convert inches to scene units (scene scale tuned for pill size)
-				const unitsPerInch = 0.095; // make each inch render longer
+                // Convert inches to scene units (smaller整体比例)
+                const unitsPerInch = 0.13;
 				const lengthUnits = this.dickLengthInches;
 				const shaftLength = Math.max(0.5, lengthUnits * unitsPerInch);
-				// Girth grows with market cap (sublinear to avoid squaring)
-				const baseRadius = 0.14;
-				const lengthProgress = Math.max(0, Math.min(1, (lengthUnits - 6) / (45 - 6)));
-				const shaftRadius = baseRadius + 0.12 * Math.pow(lengthProgress, 0.7); // thicker growth per inch
-				
-				const shaftMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
-				const headMaterial = new THREE.MeshLambertMaterial({ color: 0xFFC0CB });
-				
-				// Shaft (cylinder oriented along Z)
-				const shaftGeometry = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 20);
-				const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
-				shaft.rotation.x = Math.PI / 2;
-				shaft.castShadow = true;
-				shaft.receiveShadow = true;
+                // Girth grows with market cap (sublinear) — thicker overall
+                const baseRadius = 0.16;
+                const lengthProgress = Math.max(0, Math.min(1, (lengthUnits - 6) / (45 - 6)));
+                const shaftRadius = baseRadius + 0.18 * Math.pow(lengthProgress, 0.7);
+
+                // Always brown shaft and pink head (no full black override)
+                const shaftColor = 0x8B4513;
+                const headColor = 0xFFC0CB;
+                const shaftMaterial = new THREE.MeshLambertMaterial({ color: shaftColor });
+                const headMaterial = new THREE.MeshLambertMaterial({ color: headColor });
+
+                // Straight shaft (cylinder oriented along Z)
+                const shaftGeometry = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 20);
+                const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+                shaft.rotation.x = Math.PI / 2;
+                shaft.castShadow = true;
+                shaft.receiveShadow = true;
 				
 				// Head (hemisphere at the tip)
 				const headRadius = shaftRadius * 1.15;
 				const headGeometry = new THREE.SphereGeometry(headRadius, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2);
-				const head = new THREE.Mesh(headGeometry, headMaterial);
-				head.rotation.x = Math.PI / 2;
-				head.castShadow = true;
-				head.receiveShadow = true;
+                const head = new THREE.Mesh(headGeometry, headMaterial);
+                head.rotation.x = Math.PI / 2;
+                head.castShadow = true;
+                head.receiveShadow = true;
 				
-				// Position cylinder so its base touches the pill surface at z = radius
-				const pillRadius = 0.7;
-				const baseZ = pillRadius - 0.05; // base contact point
-				shaft.position.z = baseZ + shaftLength / 2;
-				head.position.z = baseZ + shaftLength;
+                // Position cylinder base reference (closer to body)
+                const baseZ = 0.015;
+                shaft.position.z = baseZ + shaftLength / 2;
+                head.position.z = baseZ + shaftLength;
+                // Keep a reference to the head for emissions
+                this.dickHeadMesh = head;
+                this.dickHeadRadius = headRadius;
 				
-				// Lower the whole group a bit
-				this.dickGroup.position.y = -0.35;
+                // Keep slight offset on Y to avoid clipping traveler's mesh (applied once in addDick via baseY)
 				
 				this.dickGroup.add(shaft);
-				this.dickGroup.add(head);
+                this.dickGroup.add(head);
 				
 				// Balls
 				const ballMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
-				const baseBall = 0.16;
-				const ballRadius = baseBall + 0.14 * Math.pow(lengthProgress, 0.7); // balls scale with cap too
+                const baseBall = 0.20;
+                const ballRadius = baseBall + 0.20 * Math.pow(lengthProgress, 0.7); // balls scale with cap too
 				const ballOffsetY = -ballRadius * 0.65; // sit slightly below shaft base
 				const ballOffsetZ = baseZ + 0.16; // near base
-				const leftBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
+                const leftBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
 				leftBall.position.set(-ballRadius * 1.05, ballOffsetY, ballOffsetZ);
 				leftBall.castShadow = true;
 				leftBall.receiveShadow = true;
-				const rightBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
+                const rightBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
 				rightBall.position.set(ballRadius * 1.05, ballOffsetY - 0.02, ballOffsetZ + 0.02);
 				rightBall.castShadow = true;
 				rightBall.receiveShadow = true;
@@ -595,26 +937,38 @@
 				}
 
 				// Jumpy dick animation (vertical bounce + slight forward bob)
-				if (this.dickGroup) {
+                if (this.dickGroup) {
 					const t = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - this.bounceStartMs;
 					const seconds = t / 1000;
 					const speed = this.bounceSpeed;
 					const amplitude = this.bounceAmplitude;
 					const bounce = Math.abs(Math.sin(seconds * Math.PI * speed)); // up-down pulse
 					const jerk = (Math.random() - 0.5) * 0.004; // tiny randomness
-					this.dickGroup.position.y = -0.35 + bounce * amplitude + jerk;
+                    const baseY = (this.dickBaseY !== undefined) ? this.dickBaseY : this.dickGroup.position.y;
+                    this.dickGroup.position.y = baseY + (-0.35 + bounce * amplitude + jerk);
 					this.dickGroup.position.z += (Math.sin(seconds * Math.PI * speed * 0.5)) * 0.0005; // micro bob on Z
 				}
-                
-                // Keep object seated on the ground plane (y = -2), regardless of scale
-                if (this.character) {
-                    const box = new THREE.Box3().setFromObject(this.character);
-                    const minY = box.min.y;
-                    const deltaToGround = -2 - minY;
-                    if (Math.abs(deltaToGround) > 1e-3) {
-                        this.character.position.y += deltaToGround;
+
+                // Update particles (white liquid)
+                if (this.particles && this.particles.length) {
+                    const dt = 1/60;
+                    const gravity = new THREE.Vector3(0, -0.98, 0);
+                    for (let i = this.particles.length - 1; i >= 0; i--) {
+                        const p = this.particles[i];
+                        p.userData.vel.add(gravity.clone().multiplyScalar(dt*0.6));
+                        p.position.add(p.userData.vel.clone().multiplyScalar(dt));
+                        p.userData.age += dt;
+                        const life = p.userData.life;
+                        if (p.userData.age > life) {
+                            this.scene.remove(p);
+                            this.particles.splice(i, 1);
+                        }
                     }
                 }
+                
+				// Keep character seated on platform each frame
+				this.seatCharacterToPlatform();
+				this.updatePlatformUnderFeet();
                 
                 this.controls.update();
                 this.renderer.render(this.scene, this.camera);
