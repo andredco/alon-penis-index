@@ -109,7 +109,7 @@ app.get('/api/marketcap/:tokenAddress?', async (req, res) => {
 
 // Create WebSocket server for real-time updates
 const server = app.listen(PORT, () => {
-    console.log(`服务已启动: http://localhost:${PORT}`);
+    console.log(`Server running: http://localhost:${PORT}`);
 });
 
 const wss = new WebSocket.Server({ server });

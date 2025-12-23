@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>币安主题可视化</title>
-    <meta name="description" content="币安主题的实时市值可视化，模型随市值变化。">
-    <meta property="og:title" content="币安主题可视化">
-    <meta property="og:description" content="币安主题的实时市值可视化，模型随市值变化。">
+    <title>Moon Visualization</title>
+    <meta name="description" content="Real-time market cap visualization with model scaling based on market cap.">
+    <meta property="og:title" content="Moon Visualization">
+    <meta property="og:description" content="Real-time market cap visualization with model scaling based on market cap.">
     <meta property="og:type" content="website">
     <style>
         body {
             margin: 0;
-            background: #0B0E11; /* Binance dark */
+            background: #0a0a12; /* Deep space dark */
             overflow: hidden;
             font-family: 'Arial', sans-serif;
         }
@@ -26,13 +26,13 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            color: #EAECEF; /* Binance light text */
+            color: #e0ffe8; /* Light text */
             z-index: 100;
-            background: rgba(11,14,17,0.92);
+            background: rgba(10,18,14,0.92);
             padding: 20px;
             border-radius: 10px;
-            border: 2px solid #F3BA2F; /* Binance yellow */
-            box-shadow: 0 6px 16px rgba(243,186,47,0.18);
+            border: 2px solid #00d67d; /* Pump green accent */
+            box-shadow: 0 6px 16px rgba(0,214,125,0.18);
         }
         
         #marketCapDisplay {
@@ -50,43 +50,43 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #EAECEF;
+            color: #e0ffe8;
             font-size: 20px;
             z-index: 100;
-            background: rgba(11,14,17,0.92);
+            background: rgba(10,18,14,0.92);
             padding: 20px;
             border-radius: 10px;
-            border: 2px solid #F3BA2F;
+            border: 2px solid #00d67d;
         }
 
         /* Goal widget */
         #goalCard {
             margin-top: 8px;
             padding: 12px 14px;
-            background: linear-gradient(180deg, #F8D57E 0%, #F3BA2F 100%);
-            border: 2px solid #F3BA2F;
+            background: linear-gradient(180deg, #00ff88 0%, #00d67d 100%);
+            border: 2px solid #00d67d;
             border-radius: 12px;
-            box-shadow: 0 6px 14px rgba(243,186,47,0.35);
-            color: #0B0E11;
+            box-shadow: 0 6px 14px rgba(0,214,125,0.35);
+            color: #0a0a12;
             width: 220px;
         }
         #goalTitle { font-weight: 800; font-size: 14px; letter-spacing: 0.3px; }
         #goalNumbers { margin-top: 4px; font-size: 13px; }
         #goalBarWrap {
             width: 100%; height: 10px; background: rgba(255,255,255,0.7); border-radius: 6px; margin-top: 8px;
-            overflow: hidden; border: 1px solid rgba(85,210,146,0.6);
+            overflow: hidden; border: 1px solid rgba(0,214,125,0.6);
         }
         #goalBar {
-            height: 100%; background: linear-gradient(90deg, #FFDE7A, #F3BA2F); width: 0%; border-radius: 6px; transition: width 300ms ease;
+            height: 100%; background: linear-gradient(90deg, #4dffaa, #00d67d); width: 0%; border-radius: 6px; transition: width 300ms ease;
         }
         #superBadge {
-            display: inline-block; margin-top: 8px; background: #0cc47b; color: #fff; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700;
+            display: inline-block; margin-top: 8px; background: #00ff88; color: #0a0a12; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700;
         }
         #goalCard.celebrate { animation: pulseGlow 850ms ease; }
         @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 rgba(47,208,148,0.6); }
-            50% { box-shadow: 0 0 28px rgba(47,208,148,0.8); }
-            100% { box-shadow: 0 6px 14px rgba(85,210,146,0.25); }
+            0% { box-shadow: 0 0 0 rgba(0,255,136,0.6); }
+            50% { box-shadow: 0 0 28px rgba(0,255,136,0.8); }
+            100% { box-shadow: 0 6px 14px rgba(0,214,125,0.25); }
         }
 
         /* Top center banner */
@@ -95,45 +95,44 @@
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(243,186,47,0.95);
-            color: #0B0E11;
+            background: rgba(0,214,125,0.95);
+            color: #0a0a12;
             font-weight: 800;
             padding: 8px 14px;
             border-radius: 999px;
-            border: 1px solid #F3BA2F;
+            border: 1px solid #00ff88;
             z-index: 120;
-            box-shadow: 0 4px 12px rgba(243,186,47,0.25);
+            box-shadow: 0 4px 12px rgba(0,255,136,0.25);
             letter-spacing: 0.5px;
         }
 
         /* Goals list */
-        #goalList { margin-top: 10px; padding: 10px 12px; background: rgba(11,14,17,0.92); border: 1px solid #F3BA2F; border-radius: 10px; width: 320px; max-height: none; overflow: visible; color: #EAECEF; }
-        .goalItem { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #EAECEF; padding: 4px 0; }
-        .goalDot { width: 8px; height: 8px; border-radius: 999px; background: #FFDE7A; border: 1px solid #F3BA2F; }
-        .goalItem.active .goalDot { background: #F3BA2F; }
+        #goalList { margin-top: 10px; padding: 10px 12px; background: rgba(10,18,14,0.92); border: 1px solid #00d67d; border-radius: 10px; width: 320px; max-height: none; overflow: visible; color: #e0ffe8; }
+        .goalItem { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e0ffe8; padding: 4px 0; }
+        .goalDot { width: 8px; height: 8px; border-radius: 999px; background: #4dffaa; border: 1px solid #00d67d; }
+        .goalItem.active .goalDot { background: #00ff88; }
         .goalItem.done { color: #C1C7CD; text-decoration: line-through; opacity: 0.8; }
     </style>
 </head>
 <body>
     <div id="container">
-        <div id="topBanner">市值越高，CZ 的丁丁越大</div>
-        <div id="loading">正在加载角色…</div>
+        <div id="topBanner">Higher Market Cap = Bigger Dick</div>
+        <div id="loading">Loading character...</div>
         <div id="ui" style="display: none;">
-            <div id="marketCapDisplay">市值：加载中…</div>
-            <div id="scaleDisplay">模型缩放：1.0x</div>
-            <div id="dickDisplay">长度：-- 英寸</div>
-            <div id="statusDisplay" style="font-size: 12px; color: #C1C7CD;"></div>
+            <div id="marketCapDisplay">Market Cap: Loading...</div>
+            <div id="scaleDisplay">Model Scale: 1.0x</div>
+            <div id="dickDisplay">Length: -- inches</div>
                 <div id="goalCard" style="width:320px;">
-                    <div id="goalTitle">市值目标</div>
-                    <div id="goalNumbers">下一目标：<b><span id="nextGoal">50.0K</span></b> • <b><span id="goalProgress">0%</span></b></div>
+                    <div id="goalTitle">Market Cap Goal</div>
+                    <div id="goalNumbers">Next Goal: <b><span id="nextGoal">50.0K</span></b> • <b><span id="goalProgress">0%</span></b></div>
                     <div id="goalBarWrap"><div id="goalBar"></div></div>
-                    <div id="superBadge" style="display:none;">100K 超级喷发！</div>
+                    <div id="superBadge" style="display:none;">100K Super Burst!</div>
                 </div>
                 <div id="goalList"></div>
 			<div id="refreshRow" style="font-size: 12px; color: #666; margin-top: 6px; display: flex; align-items: center; gap: 8px;">
 				<span id="refreshIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#cccccc;opacity:0;transition:opacity 0.2s, background 0.2s;"></span>
-				<span id="lastUpdatedDisplay">等待首次更新…</span>
-				<span id="countdownDisplay" style="margin-left:auto;">下次更新 —</span>
+				<span id="lastUpdatedDisplay">Waiting for first update...</span>
+				<span id="countdownDisplay" style="margin-left:auto;">Next update —</span>
 			</div>
         </div>
     </div>
@@ -177,7 +176,7 @@
             init() {
                 // Scene setup
                 this.scene = new THREE.Scene();
-                this.scene.background = new THREE.Color(0x0B0E11); // Binance dark
+                this.scene.background = new THREE.Color(0x0a0a12); // Deep space dark
                 
                 // Camera setup
                 this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -223,10 +222,9 @@
             }
 
 			loadPrimaryModel() {
-				// Load primary FBX character with textures from CHJAO.fbm and add environment
+				// Load Wealthy Traveler FBX and add moon environment
 				this.loadWealthyTraveler();
-				// 移除月球地面，改为平台
-				this.addBinancePlatform();
+				this.loadMoonGround();
 			}
             
             loadCharacter() {
@@ -335,12 +333,12 @@
                 };
                 
 				this.ws.onopen = () => {
-					console.log('WebSocket 已连接');
+					console.log('WebSocket connected');
 					this.wsReconnectDelayMs = 2000; // reset backoff on successful connect
                 };
                 
 				this.ws.onerror = (error) => {
-					console.error('WebSocket 错误:', error);
+					console.error('WebSocket error:', error);
                 };
 				
 				this.ws.onclose = () => {
@@ -351,50 +349,11 @@
 				};
 			}
 
-			// 添加币安风格平台（角色脚下）
-			addBinancePlatform() {
-				const platformGroup = new THREE.Group();
-				// 主平台：圆柱体
-				const radius = 3.2;
-				const height = 0.3;
-				this.platformHeight = height;
-				const mainMat = new THREE.MeshStandardMaterial({ color: 0x0B0E11, metalness: 0.3, roughness: 0.4 });
-				const rimMat = new THREE.MeshStandardMaterial({ color: 0xF3BA2F, metalness: 0.5, roughness: 0.35 });
-				const main = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height, 64), mainMat);
-				main.castShadow = true; main.receiveShadow = true;
-				platformGroup.add(main);
-
-				// 边缘金色环
-				const rim = new THREE.Mesh(new THREE.TorusGeometry(radius * 0.98, 0.06, 16, 64), rimMat);
-				rim.rotation.x = Math.PI / 2;
-				platformGroup.add(rim);
-
-				// 顶面放置 Binance 标志（使用 public/binance.png 纹理）
-				const texLoader = new THREE.TextureLoader();
-				texLoader.load('binance.png', (tex) => {
-					if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
-					tex.anisotropy = this.renderer?.capabilities?.getMaxAnisotropy?.() || 1;
-					const logoMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
-					const size = radius * 1.6; // 合理占比
-					const logo = new THREE.Mesh(new THREE.PlaneGeometry(size, size), logoMat);
-					logo.rotation.x = -Math.PI / 2;
-					logo.position.y = height/2 + 0.01;
-					logo.renderOrder = 10;
-					platformGroup.add(logo);
-				});
-
-				// 位置到更高的平台顶（可调整）
-				this.platformTopY = -1.2;
-				platformGroup.position.y = this.platformTopY - height/2;
-				this.platform = platformGroup;
-				this.scene.add(platformGroup);
-			}
-
-			// 使角色脚底贴合平台：临时隐藏附加物以避免影响包围盒
-			seatCharacterToPlatform() {
+			// Seat character on moon surface
+			seatCharacterToMoon() {
 				if (!this.character) return;
 				this.character.updateMatrixWorld(true);
-				const groundY = this.platformTopY ?? -2.0;
+				const groundY = this.moonTopY ?? -2.0;
 				// Prefer bone-based minY (works better for skinned meshes)
 				let minY = Infinity;
 				this.character.traverse((obj) => {
@@ -417,103 +376,55 @@
 				if (Math.abs(delta) > 1e-3) this.character.position.y += delta;
 			}
 
-			// 将平台移动到角色脚底，避免包围盒误差导致的缝隙
-			updatePlatformUnderFeet() {
-				if (!this.platform || !this.character) return;
-				this.character.updateMatrixWorld(true);
-				let footY = Infinity;
-				this.character.traverse((obj) => {
-					if (obj.isBone) {
-						obj.updateMatrixWorld(true);
-						const p = new THREE.Vector3();
-						obj.getWorldPosition(p);
-						if (p.y < footY) footY = p.y;
-					}
-				});
-				if (!Number.isFinite(footY)) {
-					let restore = false;
-					if (this.dickGroup && this.dickGroup.visible !== false) { this.dickGroup.visible = false; restore = true; }
-					const box = new THREE.Box3().setFromObject(this.character);
-					if (restore) this.dickGroup.visible = true;
-					footY = box.min.y;
-				}
-				const height = this.platformHeight ?? 0.3;
-				const smallGap = 0.0; // set to 0 for flush contact
-				const targetTop = footY - smallGap;
-
-				this.platformTopY = targetTop;
-				this.platform.position.y = targetTop - height/2;
-			}
-
-			// Load a moon ground plane from an FBX model and apply 8k texture
+			// Load a platform with pump.fun colors (neon green/teal)
 			loadMoonGround() {
-				try {
-					const loader = new THREE.FBXLoader();
-					loader.load('cinematic-moon.fbx', (object) => {
-						// Try to find a mesh in the FBX; otherwise create a fallback plane
-						let moonMesh = null;
-						object.traverse((child) => {
-							if (!moonMesh && child.isMesh) moonMesh = child;
-						});
-						if (!moonMesh) {
-							moonMesh = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshLambertMaterial({ color: 0xffffff }));
-                        moonMesh.rotation.x = -Math.PI / 2;
-                        moonMesh.position.y = -40.3;
-						}
-						// Scale moon (20x bigger than previous)
-						moonMesh.scale.setScalar(35.4);
-						// Apply moon texture
-						const texLoader = new THREE.TextureLoader();
-						texLoader.load('8k_moon.jpeg', (tex) => {
-							if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
-							tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-							tex.repeat.set(1, 1);
-							const mat = new THREE.MeshLambertMaterial({ map: tex });
-							moonMesh.material = mat;
-						});
-						// Orient like a ground plane
-                        moonMesh.rotation.x = -Math.PI / 2;
-                        moonMesh.position.y = -37.1;
-                        moonMesh.rotation.x = -Math.PI / 2;
-                        moonMesh.position.y = -37.1;
-						moonMesh.receiveShadow = true;
-						this.scene.add(moonMesh);
-					}, undefined, (err) => {
-						console.warn('Could not load cinematic-moon.fbx; falling back to textured plane.', err);
-						const texLoader = new THREE.TextureLoader();
-						texLoader.load('8k_moon.jpeg', (tex) => {
-							if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
-							tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-							const mesh = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshLambertMaterial({ map: tex }));
-                        mesh.rotation.x = -Math.PI / 2;
-                        mesh.position.y = -50;
-							mesh.receiveShadow = true;
-							this.scene.add(mesh);
-						});
-					});
-				} catch (e) {
-					console.warn('FBX loader not available for moon; using textured plane.', e);
-						const texLoader = new THREE.TextureLoader();
-						texLoader.load('8k_moon.jpeg', (tex) => {
-						if (THREE && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
-							const mesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), new THREE.MeshLambertMaterial({ map: tex }));
-						mesh.rotation.x = -Math.PI / 2;
-						mesh.position.y = -2;
-						mesh.scale.setScalar(2.4);
-						mesh.receiveShadow = true;
-						this.scene.add(mesh);
-					});
-				}
+				const platformRadius = 4;
+				const platformHeight = 0.3;
+				
+				// Platform base - pump.fun dark teal/green
+				const platformGeo = new THREE.CylinderGeometry(platformRadius, platformRadius * 1.1, platformHeight, 48);
+				const platformMat = new THREE.MeshLambertMaterial({ color: 0x0d3d2e });
+				const platform = new THREE.Mesh(platformGeo, platformMat);
+				platform.position.y = -2 - platformHeight / 2;
+				platform.receiveShadow = true;
+				platform.castShadow = true;
+				this.scene.add(platform);
+				
+				// Top surface - brighter pump.fun green
+				const topGeo = new THREE.CircleGeometry(platformRadius, 48);
+				const topMat = new THREE.MeshLambertMaterial({ color: 0x00d67d });
+				const top = new THREE.Mesh(topGeo, topMat);
+				top.rotation.x = -Math.PI / 2;
+				top.position.y = -2 + 0.01;
+				top.receiveShadow = true;
+				this.scene.add(top);
+				
+				// Glowing neon green ring around the platform edge
+				const ringGeo = new THREE.TorusGeometry(platformRadius, 0.1, 16, 64);
+				const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+				const ring = new THREE.Mesh(ringGeo, ringMat);
+				ring.rotation.x = -Math.PI / 2;
+				ring.position.y = -2 + 0.02;
+				this.scene.add(ring);
+				
+				// Inner accent ring
+				const innerRingGeo = new THREE.TorusGeometry(platformRadius * 0.6, 0.05, 16, 48);
+				const innerRingMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+				const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
+				innerRing.rotation.x = -Math.PI / 2;
+				innerRing.position.y = -2 + 0.02;
+				this.scene.add(innerRing);
+				
+				this.moonTopY = -2;
 			}
 
 		loadWealthyTraveler() {
 				try {
 					const loader = new THREE.FBXLoader();
-				loader.setResourcePath('CHJAO.fbm/');
-				loader.load('CHJAO.Fbx', (object) => {
+				loader.load('Wealthy_Traveler_0715225309_texture.fbx', (object) => {
                     this.traveler = object;
                     this.traveler.scale.setScalar(0.03); // make traveler bigger
-						this.traveler.position.set(0.0, 0, 0.6); // a bit more backwards (closer to platform)
+						this.traveler.position.set(0.0, 0, 0.6);
 						this.traveler.traverse((child) => {
 							if (child.isMesh) {
 								child.castShadow = true;
@@ -524,15 +435,15 @@
  					// Use traveler as the active character/avatar for downstream logic
  					this.character = this.traveler;
  					this.avatar = this.traveler;
-					// 将角色坐落在平台顶
-					this.seatCharacterToPlatform();
+					// Seat character on moon surface
+					this.seatCharacterToMoon();
                     // Attach growth-driven dick to traveler and show UI
 					this.addDick();
-					this.seatCharacterToPlatform();
+					this.seatCharacterToMoon();
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('ui').style.display = 'block';
 				}, undefined, (err) => {
-					console.warn('Unable to load CHJAO FBX. Ensure the file exists in /public.', err);
+					console.warn('Unable to load Wealthy Traveler FBX. Ensure the file exists in /public.', err);
 					});
 				} catch (e) {
 					console.warn('FBX loader not available.', e);
@@ -568,7 +479,7 @@
 						// Seat on ground
 						const box = new THREE.Box3().setFromObject(model);
 						const minY = box.min.y;
-						const deltaToGround = this.platformTopY ?? -6.0 - minY;
+						const deltaToGround = this.moonTopY ?? -6.0 - minY;
 						if (Math.abs(deltaToGround) > 1e-3) model.position.y += deltaToGround;
 						console.log('Loaded GLB model at', model.position, 'scale', scaleFactor);
 					}, undefined, (err) => {
@@ -635,7 +546,7 @@
 				setInterval(() => {
 					const remainingMs = Math.max(0, this.nextTickAt - Date.now());
 					const seconds = (remainingMs / 1000).toFixed(1);
-					countdownEl.textContent = `下次更新 ${seconds}s`;
+					countdownEl.textContent = `Next update ${seconds}s`;
 				}, 200);
             }
             
@@ -648,23 +559,23 @@
 				indicator.style.background = isFallback ? '#ff8800' : '#00aa44';
 				setTimeout(() => { indicator.style.opacity = 0; }, 250);
 				const now = new Date();
-				lastUpdatedEl.textContent = `上次更新 ${now.toLocaleTimeString()}`;
+				lastUpdatedEl.textContent = `Last updated ${now.toLocaleTimeString()}`;
 				this.nextTickAt = Date.now() + this.refreshIntervalMs;
 				
-                // 长度增长映射：7k => ~6英寸，200k => ~45英寸（对数缩放）
+                // Length growth mapping: 7k => ~6 inches, 200k => ~45 inches (log scale)
 				const baseline = 7000;
 				const gainPerLog10 = 26.79; // inches per decade to hit ~45in at 200k
 				const logTerm = Math.log(Math.max(marketCap, 1) / baseline) / Math.log(10);
                 this.dickTargetLengthInches = Math.max(4, Math.min(60, 6 + gainPerLog10 * logTerm));
 				
-                // 更新UI（以千为单位显示）
+                // Update UI (display in thousands)
 				const marketCapK = marketCap / 1000;
 				const marketCapText = `$${marketCapK.toLocaleString(undefined, { maximumFractionDigits: 2 })}K`;
-				document.getElementById('marketCapDisplay').innerHTML = `市值：${marketCapText}`;
+				document.getElementById('marketCapDisplay').innerHTML = `Market Cap: ${marketCapText}`;
                 document.getElementById('dickDisplay').innerHTML = 
-                    `长度：${this.dickTargetLengthInches.toFixed(1)} 英寸`;
+                    `Length: ${this.dickTargetLengthInches.toFixed(1)} inches`;
 
-                // 更新目标列表（每5万）
+                // Update goals list (every 50k)
                 const step = 50000;
                 // Initialize next goal aligned to current cap
                 if (!this.nextEmissionGoal || marketCap < step) {
@@ -678,7 +589,7 @@
                 // Render the full goals list on every update
                 this.renderGoalsList(marketCap);
 
-                // 每跨越5万触发一次喷发
+                // Trigger burst every 50k milestone
                 while (marketCap >= this.nextEmissionGoal) {
                     setTimeout(() => this.emitLiquidBurst(false), 1500); // delay normal bust by 1.5s
                     const card = document.getElementById('goalCard');
@@ -688,7 +599,7 @@
                     this.renderGoalsList(marketCap);
                 }
 
-                // 每跨越10万触发超级喷发
+                // Trigger super burst every 100k milestone
                 const superStep = 100000;
                 if (!this.nextSuperEmissionGoal || marketCap < superStep) {
                     this.nextSuperEmissionGoal = (Math.floor(marketCap / superStep) + 1) * superStep;
@@ -697,36 +608,27 @@
                     setTimeout(() => this.emitLiquidBurst(true), 1500); // delay super bust by 1.5s
                     const badge = document.getElementById('superBadge');
                     badge.style.display = 'inline-block';
-                    badge.textContent = `${(this.nextSuperEmissionGoal/1000).toLocaleString()}K 超级喷发！`;
+                    badge.textContent = `${(this.nextSuperEmissionGoal/1000).toLocaleString()}K Super Burst!`;
                     setTimeout(()=>{ badge.style.display = 'none'; }, 3000);
                     this.nextSuperEmissionGoal += superStep;
                     this.renderGoalsList(marketCap);
                 }
                 
-                // 显示数据状态
-                const statusEl = document.getElementById('statusDisplay');
-                if (isFallback) {
-                    statusEl.innerHTML = '⚠️ 使用模拟数据（API 受限）';
-                    statusEl.style.color = '#ff8800';
-                } else {
-                    statusEl.innerHTML = '🟢 实时数据（使用 Dexscreener API，更新可能略有延迟）';
-                    statusEl.style.color = '#00aa44';
-                }
             }
 
 			renderGoalsList(currentCap) {
 				const el = document.getElementById('goalList');
 				if (!el) return;
                 const goals = [
-                    { v: 50000, label: '50k：小喷发' },
-                    { v: 100000, label: '100k：超级喷发' },
-                    { v: 150000, label: '150k：额外喷发' },
-                    { v: 200000, label: '200k：颜色变为黑色' },
-                    { v: 300000, label: '300k：巨喷' },
-                    { v: 400000, label: '400k：社区庆祝' },
-                    { v: 500000, label: '500k：超巨喷发' },
-                    { v: 750000, label: '750k：终极喷发' },
-                    { v: 1000000, label: '1M：疯狂喷发' }
+                    { v: 50000, label: '50k: Small Burst' },
+                    { v: 100000, label: '100k: Super Burst' },
+                    { v: 150000, label: '150k: Extra Burst' },
+                    { v: 200000, label: '200k: Color turns black' },
+                    { v: 300000, label: '300k: Mega Burst' },
+                    { v: 400000, label: '400k: Community Celebration' },
+                    { v: 500000, label: '500k: Ultra Burst' },
+                    { v: 750000, label: '750k: Ultimate Burst' },
+                    { v: 1000000, label: '1M: Insane Burst' }
                 ];
                 const lengthFor = (cap) => {
                     const baseline = 7000;
@@ -781,30 +683,30 @@
 			}
             
             addDick() {
-                // 在模型前方添加临时位置的器官，后续可根据指引微调
+                // Add the organ at a temp position in front of the model
                 const host = this.traveler || this.character || this.avatar;
                 if (!host) return;
 
-                // 移除旧分组
+                // Remove old group
                 if (this.dickGroup && this.dickGroup.parent) {
                     this.dickGroup.parent.remove(this.dickGroup);
                 }
                 this.dickGroup = new THREE.Group();
 
-                // 以主模型包围盒估算放置位置：模型高度的40%处，位于模型前方
+                // Estimate placement position from model bounding box: 40% up from feet, in front
                 const box = new THREE.Box3().setFromObject(host);
                 const size = new THREE.Vector3();
                 const center = new THREE.Vector3();
                 box.getSize(size);
                 box.getCenter(center);
                 const height = size.y || 1;
-				const placeY = box.min.y + height * 0.40;
-				// 使用模型朝向(+Z)作为前方向
+				const placeY = box.min.y + height * 0.12;
+				// Use model forward (+Z) as direction
 				const hostQuat = new THREE.Quaternion();
 				host.getWorldQuaternion(hostQuat);
 				const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(hostQuat).normalize();
-				const offsetDist = 0; // 紧贴主体
-				const yLift = Math.max(0.15, height * 0.09); // 更高一些
+				const offsetDist = 0; // flush against body
+				const yLift = Math.max(0.15, height * 0.09);
 				const basePos = new THREE.Vector3(center.x, placeY, center.z)
 					.addScaledVector(forward, offsetDist)
 					.add(new THREE.Vector3(0, yLift, 0));
@@ -816,8 +718,8 @@
 				this.dickGroup.applyMatrix4(invHost);
 				host.add(this.dickGroup);
 
-                // 初始化长度并生成几何
-				this.dickLengthInches = this.dickLengthInches || 4.5; // 初始更小
+                // Initialize length and generate geometry
+				this.dickLengthInches = this.dickLengthInches || 4.5;
 				this.dickTargetLengthInches = this.dickTargetLengthInches || 4.5;
                 this.dickBaseY = this.dickGroup.position.y;
                 this.updateDickGeometry();
@@ -842,7 +744,7 @@
 					this.dickGroup.remove(this.dickGroup.children[0]);
 				}
 				
-                // Convert inches to scene units (smaller整体比例)
+                // Convert inches to scene units (smaller overall ratio)
                 const unitsPerInch = 0.13;
 				const lengthUnits = this.dickLengthInches;
 				const shaftLength = Math.max(0.5, lengthUnits * unitsPerInch);
@@ -945,7 +847,7 @@
 					const bounce = Math.abs(Math.sin(seconds * Math.PI * speed)); // up-down pulse
 					const jerk = (Math.random() - 0.5) * 0.004; // tiny randomness
                     const baseY = (this.dickBaseY !== undefined) ? this.dickBaseY : this.dickGroup.position.y;
-                    this.dickGroup.position.y = baseY + (-0.35 + bounce * amplitude + jerk);
+                    this.dickGroup.position.y = baseY + (-0.50 + bounce * amplitude + jerk);
 					this.dickGroup.position.z += (Math.sin(seconds * Math.PI * speed * 0.5)) * 0.0005; // micro bob on Z
 				}
 
@@ -965,10 +867,9 @@
                         }
                     }
                 }
-                
-				// Keep character seated on platform each frame
-				this.seatCharacterToPlatform();
-				this.updatePlatformUnderFeet();
+				
+				// Keep character seated on moon each frame
+				this.seatCharacterToMoon();
                 
                 this.controls.update();
                 this.renderer.render(this.scene, this.camera);
@@ -987,4 +888,4 @@
         });
     </script>
 </body>
-</html> 
+</html>
