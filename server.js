@@ -74,6 +74,15 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// API endpoint to get the configured token address
+app.get('/api/token', (req, res) => {
+    if (TOKEN_MINT) {
+        res.json({ token: TOKEN_MINT });
+    } else {
+        res.status(404).json({ error: 'TOKEN_MINT not configured in .env' });
+    }
+});
+
 // API endpoint to get token market cap
 app.get('/api/marketcap/:tokenAddress?', async (req, res) => {
     try {

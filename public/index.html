@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alon Dick Index</title>
+    <title>PUMP THE COCK</title>
     <meta name="description" content="Real-time market cap visualization with model scaling based on market cap.">
-    <meta property="og:title" content="Alon Dick Index">
+    <meta property="og:title" content="PUMP THE COCK">
     <meta property="og:description" content="Real-time market cap visualization with model scaling based on market cap.">
     <meta property="og:type" content="website">
     <style>
@@ -164,6 +164,8 @@
 				this.ws = null;
 				this.wsReconnectDelayMs = 2000; // start at 2s, backoff to max 10s
 				this.connectWebSocket();
+				// Connect to PumpPortal for real-time token data
+				this.connectPumpPortal();
                 // Load new primary model
                 this.loadPrimaryModel();
 				this.fetchInitialMarketCap();
@@ -222,8 +224,8 @@
             }
 
 			loadPrimaryModel() {
-				// Load Wealthy Traveler FBX and add moon environment
-				this.loadWealthyTraveler();
+				// Load pill character with cupseyface and platform
+				this.loadCharacter();
 				this.loadMoonGround();
 			}
             
@@ -231,8 +233,8 @@
                 // Create a procedural pill: white top, green bottom (#55d292)
                 const pillGroup = new THREE.Group();
 
-                const radius = 0.7; // bigger pill
-                const cylinderHeight = 1.6; // taller pill
+                const radius = 1.0; // bigger pill
+                const cylinderHeight = 2.2; // taller pill
                 const segments = 32;
 
                 const whiteMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -311,8 +313,12 @@
 					console.warn('Face texture load failed (cupseyface.png). Place it in /public');
 				});
 
+				// Seat character on platform
+				this.seatCharacterToMoon();
+				
 				// Add pill's dick
 				this.addDick();
+				this.seatCharacterToMoon();
 
 				// Show UI
                 document.getElementById('loading').style.display = 'none';
@@ -347,6 +353,124 @@
 					this.wsReconnectDelayMs = Math.min(this.wsReconnectDelayMs * 2, 10000);
 					setTimeout(() => this.connectWebSocket(), delay);
 				};
+			}
+
+			// Fetch SOL price from CoinGecko
+			async fetchSolPrice() {
+				try {
+					const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+					const data = await res.json();
+					this.solPrice = data.solana.usd;
+					console.log('💲 SOL Price updated:', this.solPrice);
+				} catch (e) {
+					console.warn('Failed to fetch SOL price, using fallback');
+					this.solPrice = this.solPrice || 150; // fallback
+				}
+			}
+
+			// Connect to PumpPortal WebSocket for real-time token trades
+			async connectPumpPortal() {
+				// Fetch token address from server (configured in .env)
+				try {
+					const res = await fetch('/api/token');
+					const data = await res.json();
+					if (data.token) {
+						this.TOKEN_CA = data.token;
+						console.log('🪙 Token loaded from env:', this.TOKEN_CA);
+					} else {
+						console.error('❌ No TOKEN_MINT configured in .env');
+						return;
+					}
+				} catch (e) {
+					console.error('❌ Failed to fetch token from server:', e);
+					return;
+				}
+				
+				this.solPrice = 150; // initial fallback
+				this.useDexScreener = false; // switch to true when marketcap >= 50k
+				this.MIGRATION_THRESHOLD = 50000; // 50k USD
+				
+				// Fetch SOL price immediately and then every 30 seconds
+				this.fetchSolPrice();
+				setInterval(() => this.fetchSolPrice(), 30000);
+				
+				this.pumpWs = new WebSocket('wss://pumpportal.fun/api/data');
+				
+				this.pumpWs.onopen = () => {
+					console.log('🟢 PumpPortal WebSocket connected');
+					
+					// Subscribe to trades on the specific token
+					this.pumpWs.send(JSON.stringify({
+						method: "subscribeTokenTrade",
+						keys: [this.TOKEN_CA]
+					}));
+					console.log('📡 Subscribed to token:', this.TOKEN_CA);
+				};
+				
+				this.pumpWs.onmessage = (event) => {
+					const data = JSON.parse(event.data);
+					
+					// Only process trades for our token
+					if (data.mint === this.TOKEN_CA && data.marketCapSol !== undefined) {
+						// Convert marketCapSol to USD
+						const marketCapUSD = data.marketCapSol * this.solPrice;
+						console.log('🎯 TRADE:', data.txType?.toUpperCase(), '| MC:', marketCapUSD.toFixed(0), 'USD (', data.marketCapSol.toFixed(2), 'SOL )');
+						
+						// Check if we should switch to DexScreener
+						if (marketCapUSD >= this.MIGRATION_THRESHOLD && !this.useDexScreener) {
+							console.log('🚀 Token approaching migration! Switching to DexScreener...');
+							this.useDexScreener = true;
+							this.startDexScreenerPolling();
+						}
+						
+						// Update the app with new marketcap (only if not using DexScreener yet)
+						if (!this.useDexScreener) {
+							this.updateMarketCap(marketCapUSD, false);
+						}
+					} else if (data.message) {
+						console.log('📨', data.message);
+					}
+				};
+				
+				this.pumpWs.onerror = (error) => {
+					console.error('❌ PumpPortal WebSocket error:', error);
+				};
+				
+				this.pumpWs.onclose = () => {
+					console.log('🔴 PumpPortal WebSocket closed, reconnecting in 5s...');
+					setTimeout(() => this.connectPumpPortal(), 5000);
+				};
+			}
+			
+			// Start polling DexScreener when token migrates (backup/post-migration tracking)
+			startDexScreenerPolling() {
+				console.log('📊 Starting DexScreener polling for:', this.TOKEN_CA);
+				
+				const pollDexScreener = async () => {
+					try {
+						const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${this.TOKEN_CA}`);
+						const data = await res.json();
+						
+						if (data.pairs && data.pairs.length > 0) {
+							// Get the pair with highest liquidity
+							const best = data.pairs.sort((a, b) => 
+								(Number(b?.liquidity?.usd || 0) - Number(a?.liquidity?.usd || 0))
+							)[0];
+							
+							const marketCap = Number(best.marketCap || best.fdv || 0);
+							if (marketCap > 0) {
+								console.log('📊 DexScreener MC:', marketCap.toFixed(0), 'USD');
+								this.updateMarketCap(marketCap, false);
+							}
+						}
+					} catch (e) {
+						console.warn('DexScreener fetch failed:', e);
+					}
+				};
+				
+				// Poll immediately then every 10 seconds
+				pollDexScreener();
+				this.dexScreenerInterval = setInterval(pollDexScreener, 10000);
 			}
 
 			// Seat character on moon surface
@@ -575,44 +699,53 @@
                 document.getElementById('dickDisplay').innerHTML = 
                     `Length: ${this.dickTargetLengthInches.toFixed(1)} inches`;
 
-                // Update goals list (every 50k)
-                const step = 50000;
-                // Initialize next goal aligned to current cap
-                if (!this.nextEmissionGoal || marketCap < step) {
-                    this.nextEmissionGoal = (Math.floor(marketCap / step) + 1) * step;
-                }
-                const nextGoalVal = this.nextEmissionGoal;
-				document.getElementById('nextGoal').textContent = `${(nextGoalVal/1000).toFixed(1)}K`;
-                const progressPct = Math.min(99, ((marketCap - (nextGoalVal - step)) / step) * 100);
+                // Update goals list with milestone tracking
+                const milestones = [15000, 40000, 60000, 200000, 500000, 1000000];
+                
+                // Find next milestone
+                let nextMilestone = milestones.find(m => m > marketCap) || milestones[milestones.length - 1];
+                let prevMilestone = milestones.filter(m => m <= marketCap).pop() || 0;
+                
+                // Format display (K, M, etc)
+                const formatNum = (n) => n >= 1000000 ? (n/1000000).toFixed(1) + 'M' : (n/1000).toFixed(0) + 'K';
+                document.getElementById('nextGoal').textContent = formatNum(nextMilestone);
+                
+                const progressPct = Math.min(99, ((marketCap - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
 				document.getElementById('goalProgress').textContent = `${progressPct.toFixed(0)}%`;
 				document.getElementById('goalBar').style.width = `${progressPct}%`;
+                
                 // Render the full goals list on every update
                 this.renderGoalsList(marketCap);
 
-                // Trigger burst every 50k milestone
-                while (marketCap >= this.nextEmissionGoal) {
-                    setTimeout(() => this.emitLiquidBurst(false), 1500); // delay normal bust by 1.5s
-                    const card = document.getElementById('goalCard');
-                    card.classList.add('celebrate');
-                    setTimeout(()=>card.classList.remove('celebrate'), 900);
-                    this.nextEmissionGoal += step;
-                    this.renderGoalsList(marketCap);
-                }
-
-                // Trigger super burst every 100k milestone
-                const superStep = 100000;
-                if (!this.nextSuperEmissionGoal || marketCap < superStep) {
-                    this.nextSuperEmissionGoal = (Math.floor(marketCap / superStep) + 1) * superStep;
-                }
-                while (marketCap >= this.nextSuperEmissionGoal) {
-                    setTimeout(() => this.emitLiquidBurst(true), 1500); // delay super bust by 1.5s
-                    const badge = document.getElementById('superBadge');
-                    badge.style.display = 'inline-block';
-                    badge.textContent = `${(this.nextSuperEmissionGoal/1000).toLocaleString()}K Super Burst!`;
-                    setTimeout(()=>{ badge.style.display = 'none'; }, 3000);
-                    this.nextSuperEmissionGoal += superStep;
-                    this.renderGoalsList(marketCap);
-                }
+                // Trigger bursts at milestones
+                const burstMilestones = [15000, 40000, 200000]; // cum milestones
+                const superBurstMilestones = [60000, 500000, 1000000]; // mega milestones
+                
+                // Check for regular bursts
+                if (!this.reachedBurstMilestones) this.reachedBurstMilestones = new Set();
+                burstMilestones.forEach(m => {
+                    if (marketCap >= m && !this.reachedBurstMilestones.has(m)) {
+                        this.reachedBurstMilestones.add(m);
+                        setTimeout(() => this.emitLiquidBurst(false), 1500);
+                        const card = document.getElementById('goalCard');
+                        card.classList.add('celebrate');
+                        setTimeout(() => card.classList.remove('celebrate'), 900);
+                    }
+                });
+                
+                // Check for super bursts (bigger milestones)
+                if (!this.reachedSuperMilestones) this.reachedSuperMilestones = new Set();
+                superBurstMilestones.forEach(m => {
+                    if (marketCap >= m && !this.reachedSuperMilestones.has(m)) {
+                        this.reachedSuperMilestones.add(m);
+                        setTimeout(() => this.emitLiquidBurst(true), 1500);
+                        const badge = document.getElementById('superBadge');
+                        badge.style.display = 'inline-block';
+                        const formatNum = (n) => n >= 1000000 ? (n/1000000).toFixed(0) + 'M' : (n/1000).toFixed(0) + 'K';
+                        badge.textContent = `${formatNum(m)} MILESTONE! 🔥`;
+                        setTimeout(() => { badge.style.display = 'none'; }, 3000);
+                    }
+                });
                 
             }
 
@@ -620,15 +753,12 @@
 				const el = document.getElementById('goalList');
 				if (!el) return;
                 const goals = [
-                    { v: 50000, label: '50k: Small Burst' },
-                    { v: 100000, label: '100k: Super Burst' },
-                    { v: 150000, label: '150k: Extra Burst' },
-                    { v: 200000, label: '200k: Color turns black' },
-                    { v: 300000, label: '300k: Mega Burst' },
-                    { v: 400000, label: '400k: Community Celebration' },
-                    { v: 500000, label: '500k: Ultra Burst' },
-                    { v: 750000, label: '750k: Ultimate Burst' },
-                    { v: 1000000, label: '1M: Insane Burst' }
+                    { v: 15000, label: '15K: First Cum 💦' },
+                    { v: 40000, label: '40K: Big Cum 💦💦' },
+                    { v: 60000, label: '60K: Dick Turns Black 🍆' },
+                    { v: 200000, label: '200K: HUGE CUM 💦💦💦' },
+                    { v: 500000, label: '500K: MEGA EXPLOSION 🌊' },
+                    { v: 1000000, label: '1M: GOD MODE 🔥👑🔥' }
                 ];
                 const lengthFor = (cap) => {
                     const baseline = 7000;
@@ -693,29 +823,19 @@
                 }
                 this.dickGroup = new THREE.Group();
 
-                // Estimate placement position from model bounding box: 40% up from feet, in front
+                // Position dick at the center/groin area of the pill
                 const box = new THREE.Box3().setFromObject(host);
                 const size = new THREE.Vector3();
                 const center = new THREE.Vector3();
                 box.getSize(size);
                 box.getCenter(center);
                 const height = size.y || 1;
-				const placeY = box.min.y + height * 0.12;
-				// Use model forward (+Z) as direction
-				const hostQuat = new THREE.Quaternion();
-				host.getWorldQuaternion(hostQuat);
-				const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(hostQuat).normalize();
-				const offsetDist = 0; // flush against body
-				const yLift = Math.max(0.15, height * 0.09);
-				const basePos = new THREE.Vector3(center.x, placeY, center.z)
-					.addScaledVector(forward, offsetDist)
-					.add(new THREE.Vector3(0, yLift, 0));
-
-				this.dickGroup.position.copy(basePos);
-				this.dickGroup.quaternion.copy(hostQuat);
-				// Convert world transform to host local and parent
-				const invHost = new THREE.Matrix4().copy(host.matrixWorld).invert();
-				this.dickGroup.applyMatrix4(invHost);
+				
+				// For pill: place at center height (where green meets white), slightly forward
+				const placeY = center.y - height * 0.15; // slightly below center
+				const forwardOffset = size.z * 0.5; // in front of the pill
+				
+				this.dickGroup.position.set(0, placeY - host.position.y, forwardOffset);
 				host.add(this.dickGroup);
 
                 // Initialize length and generate geometry
@@ -838,18 +958,7 @@
 					this.updateDickGeometry();
 				}
 
-				// Jumpy dick animation (vertical bounce + slight forward bob)
-                if (this.dickGroup) {
-					const t = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - this.bounceStartMs;
-					const seconds = t / 1000;
-					const speed = this.bounceSpeed;
-					const amplitude = this.bounceAmplitude;
-					const bounce = Math.abs(Math.sin(seconds * Math.PI * speed)); // up-down pulse
-					const jerk = (Math.random() - 0.5) * 0.004; // tiny randomness
-                    const baseY = (this.dickBaseY !== undefined) ? this.dickBaseY : this.dickGroup.position.y;
-                    this.dickGroup.position.y = baseY + (-0.50 + bounce * amplitude + jerk);
-					this.dickGroup.position.z += (Math.sin(seconds * Math.PI * speed * 0.5)) * 0.0005; // micro bob on Z
-				}
+				// Keep dick at fixed position (no bounce animation)
 
                 // Update particles (white liquid)
                 if (this.particles && this.particles.length) {
