@@ -197,48 +197,6 @@
             color: var(--green-bright);
         }
 
-        #testMcRow {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-
-        #testMcBtn {
-            flex: 1;
-            border: 1px solid rgba(0, 214, 125, 0.45);
-            background: rgba(0, 214, 125, 0.12);
-            color: var(--green-bright);
-            border-radius: 12px;
-            padding: 10px 12px;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
-        }
-
-        #testMcBtn:hover {
-            background: rgba(0, 214, 125, 0.22);
-            border-color: rgba(0, 255, 136, 0.7);
-        }
-
-        #resetMcBtn {
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-muted);
-            border-radius: 12px;
-            padding: 10px 12px;
-            font-family: inherit;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        #resetMcBtn:hover {
-            color: var(--text);
-            border-color: rgba(255, 255, 255, 0.22);
-        }
-
         #goalCard {
             padding: 14px 16px;
             background: linear-gradient(160deg, rgba(0, 255, 136, 0.22), rgba(0, 214, 125, 0.12));
@@ -478,10 +436,6 @@
                         <div class="stat-value" id="scaleDisplay">1.0x</div>
                     </div>
                 </div>
-                <div id="testMcRow">
-                    <button id="testMcBtn" type="button">+50K Market Cap (Test)</button>
-                    <button id="resetMcBtn" type="button">Reset</button>
-                </div>
                 <div id="rewardsCard">
                     <div id="rewardsTitle">Holder Rewards Drop</div>
                     <div id="rewardsTimer">--:--:--</div>
@@ -521,8 +475,6 @@
                 this.renderer = null;
                 this.avatar = null;
                 this.marketCap = 0;
-                this.testMode = false;
-                this.testMarketCap = null;
                 this.triggeredMilestones = new Set();
                 this.milestonesInitialized = false;
                 this.dickMeshes = {};
@@ -547,7 +499,6 @@
 				this.fetchRewardsState();
 				this.lastUpdateAt = Date.now();
 				this.startCountdownTimer();
-                this.bindTestControls();
                 this.animate();
             }
             
@@ -618,7 +569,6 @@
 					try {
                     const message = JSON.parse(event.data);
                     if (message.type === 'marketcap') {
-                        if (this.testMode) return;
                         this.updateMarketCap(message.data, {
                             fallback: !message.realtime,
                             status: message.status,
@@ -879,10 +829,6 @@
 			startCountdownTimer() {
 				const countdownEl = document.getElementById('countdownDisplay');
 				setInterval(() => {
-					if (this.testMode) {
-						countdownEl.textContent = 'Test mode';
-						return;
-					}
 					if (this.isLiveFeed) {
 						countdownEl.textContent = 'Live on-chain';
 						return;
@@ -890,38 +836,6 @@
 					const ago = Math.max(0, (Date.now() - (this.lastUpdateAt || Date.now())) / 1000);
 					countdownEl.textContent = `Updated ${ago.toFixed(0)}s ago`;
 				}, 500);
-            }
-
-            bindTestControls() {
-                const bumpBtn = document.getElementById('testMcBtn');
-                const resetBtn = document.getElementById('resetMcBtn');
-                if (bumpBtn) {
-                    bumpBtn.addEventListener('click', () => this.bumpTestMarketCap());
-                }
-                if (resetBtn) {
-                    resetBtn.addEventListener('click', () => this.resetTestMarketCap());
-                }
-            }
-
-            bumpTestMarketCap() {
-                this.testMode = true;
-                const base = this.testMarketCap ?? (typeof this.marketCap === 'number' ? this.marketCap : 7000);
-                this.testMarketCap = base + 50000;
-                this.updateMarketCap(this.testMarketCap, {
-                    status: 'live',
-                    source: 'test',
-                    isGraduated: true,
-                    realtime: false,
-                });
-            }
-
-            resetTestMarketCap() {
-                this.testMode = false;
-                this.testMarketCap = null;
-                this.triggeredMilestones = new Set();
-                this.milestonesInitialized = false;
-                this.lastDickStyleKey = '';
-                this.fetchInitialMarketCap();
             }
 
             getMilestones() {
@@ -1058,9 +972,7 @@
 				setTimeout(() => { indicator.style.opacity = 0; }, 250);
 				const now = new Date();
 				this.lastUpdateAt = Date.now();
-                const sourceLabel = meta.source === 'test'
-                    ? 'Test mode'
-                    : meta.source === 'amm'
+                const sourceLabel = meta.source === 'amm'
                     ? 'PumpSwap AMM'
                     : meta.source === 'bonding-curve'
                         ? 'Bonding curve'
