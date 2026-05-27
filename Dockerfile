@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev && node -e "require('uuid'); require('@solana/web3.js'); console.log('deps ok')"
 
 # Bundle app source
 COPY public ./public
