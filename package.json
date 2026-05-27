@@ -31,5 +31,8 @@
     "character"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "uuid": "8.3.2"
+  }
 }
