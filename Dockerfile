@@ -11,6 +11,8 @@ RUN npm ci --only=production
 # Bundle app source
 COPY public ./public
 COPY server.js ./
+COPY marketMonitor.js ./
+COPY rewardsTimer.js ./
 
 # Expose the port the app runs on
 EXPOSE 3000

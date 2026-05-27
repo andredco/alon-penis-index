@@ -24,3 +24,6 @@ coverage/
 dist/
 build/
 .vercel
+
+# Runtime state
+data/

@@ -3,137 +3,507 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUMP THE COCK</title>
-    <meta name="description" content="Real-time market cap visualization with model scaling based on market cap.">
-    <meta property="og:title" content="PUMP THE COCK">
-    <meta property="og:description" content="Real-time market cap visualization with model scaling based on market cap.">
+    <title>Alon Penis Index</title>
+    <meta name="description" content="Alon Penis Index — real-time market cap visualization with model scaling.">
+    <meta property="og:title" content="Alon Penis Index">
+    <meta property="og:description" content="Alon Penis Index — real-time market cap visualization with model scaling.">
     <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #06080f;
+            --panel: rgba(8, 14, 22, 0.82);
+            --panel-border: rgba(0, 214, 125, 0.35);
+            --green: #00d67d;
+            --green-bright: #00ff88;
+            --text: #e8fff2;
+            --text-muted: #8ba89a;
+            --card: rgba(255, 255, 255, 0.04);
+        }
+
+        * { box-sizing: border-box; }
+
         body {
             margin: 0;
-            background: #0a0a12; /* Deep space dark */
+            background: var(--bg);
             overflow: hidden;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            color: var(--text);
         }
-        
+
         #container {
             position: relative;
             width: 100vw;
             height: 100vh;
         }
-        
-        #ui {
+
+        #topBanner {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #e0ffe8; /* Light text */
-            z-index: 100;
-            background: rgba(10,18,14,0.92);
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #00d67d; /* Pump green accent */
-            box-shadow: 0 6px 16px rgba(0,214,125,0.18);
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--panel);
+            backdrop-filter: blur(16px);
+            color: var(--text);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: 1px solid var(--panel-border);
+            z-index: 120;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            letter-spacing: 0.02em;
         }
-        
-        #marketCapDisplay {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
+
+        #topBanner .banner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green-bright);
+            box-shadow: 0 0 12px var(--green-bright);
+            animation: livePulse 2s ease-in-out infinite;
         }
-        
-        #scaleDisplay {
-            font-size: 16px;
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
         }
-        
+
         #loading {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #e0ffe8;
-            font-size: 20px;
             z-index: 100;
-            background: rgba(10,18,14,0.92);
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #00d67d;
+            background: var(--panel);
+            backdrop-filter: blur(16px);
+            padding: 28px 36px;
+            border-radius: 16px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+            min-width: 240px;
         }
 
-        /* Goal widget */
-        #goalCard {
-            margin-top: 8px;
-            padding: 12px 14px;
-            background: linear-gradient(180deg, #00ff88 0%, #00d67d 100%);
-            border: 2px solid #00d67d;
-            border-radius: 12px;
-            box-shadow: 0 6px 14px rgba(0,214,125,0.35);
-            color: #0a0a12;
-            width: 220px;
-        }
-        #goalTitle { font-weight: 800; font-size: 14px; letter-spacing: 0.3px; }
-        #goalNumbers { margin-top: 4px; font-size: 13px; }
-        #goalBarWrap {
-            width: 100%; height: 10px; background: rgba(255,255,255,0.7); border-radius: 6px; margin-top: 8px;
-            overflow: hidden; border: 1px solid rgba(0,214,125,0.6);
-        }
-        #goalBar {
-            height: 100%; background: linear-gradient(90deg, #4dffaa, #00d67d); width: 0%; border-radius: 6px; transition: width 300ms ease;
-        }
-        #superBadge {
-            display: inline-block; margin-top: 8px; background: #00ff88; color: #0a0a12; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 700;
-        }
-        #goalCard.celebrate { animation: pulseGlow 850ms ease; }
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 rgba(0,255,136,0.6); }
-            50% { box-shadow: 0 0 28px rgba(0,255,136,0.8); }
-            100% { box-shadow: 0 6px 14px rgba(0,214,125,0.25); }
+        #loading .spinner {
+            width: 36px;
+            height: 36px;
+            margin: 0 auto 14px;
+            border: 3px solid rgba(0, 214, 125, 0.2);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
-        /* Top center banner */
-        #topBanner {
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #loading .loading-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        #ui {
             position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,214,125,0.95);
-            color: #0a0a12;
-            font-weight: 800;
-            padding: 8px 14px;
-            border-radius: 999px;
-            border: 1px solid #00ff88;
-            z-index: 120;
-            box-shadow: 0 4px 12px rgba(0,255,136,0.25);
-            letter-spacing: 0.5px;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            width: min(360px, calc(100vw - 40px));
+            background: var(--panel);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 0;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
         }
 
-        /* Goals list */
-        #goalList { margin-top: 10px; padding: 10px 12px; background: rgba(10,18,14,0.92); border: 1px solid #00d67d; border-radius: 10px; width: 320px; max-height: none; overflow: visible; color: #e0ffe8; }
-        .goalItem { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #e0ffe8; padding: 4px 0; }
-        .goalDot { width: 8px; height: 8px; border-radius: 999px; background: #4dffaa; border: 1px solid #00d67d; }
-        .goalItem.active .goalDot { background: #00ff88; }
-        .goalItem.done { color: #C1C7CD; text-decoration: line-through; opacity: 0.8; }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid rgba(0, 214, 125, 0.15);
+        }
+
+        .panel-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .panel-header h1 {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .panel-header p {
+            margin: 2px 0 0;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .panel-body {
+            padding: 16px 20px 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
+
+        .stat-card.primary {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(0, 214, 125, 0.18), rgba(0, 255, 136, 0.08));
+            border-color: rgba(0, 214, 125, 0.35);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+
+        .stat-card:not(.primary) .stat-value {
+            font-size: 18px;
+            color: var(--green-bright);
+        }
+
+        #testMcRow {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        #testMcBtn {
+            flex: 1;
+            border: 1px solid rgba(0, 214, 125, 0.45);
+            background: rgba(0, 214, 125, 0.12);
+            color: var(--green-bright);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        #testMcBtn:hover {
+            background: rgba(0, 214, 125, 0.22);
+            border-color: rgba(0, 255, 136, 0.7);
+        }
+
+        #resetMcBtn {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #resetMcBtn:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        #goalCard {
+            padding: 14px 16px;
+            background: linear-gradient(160deg, rgba(0, 255, 136, 0.22), rgba(0, 214, 125, 0.12));
+            border: 1px solid rgba(0, 214, 125, 0.4);
+            border-radius: 14px;
+            margin-bottom: 12px;
+        }
+
+        #goalTitle {
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--green-bright);
+        }
+
+        #goalNumbers {
+            margin-top: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        #goalBarWrap {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 999px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        #goalBar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green-bright), var(--green));
+            width: 0%;
+            border-radius: 999px;
+            transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.5);
+        }
+
+        #superBadge {
+            display: none;
+            margin-top: 10px;
+            background: var(--green-bright);
+            color: var(--bg);
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        #goalCard.celebrate { animation: pulseGlow 850ms ease; }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 rgba(0, 255, 136, 0); }
+            50% { box-shadow: 0 0 32px rgba(0, 255, 136, 0.55); }
+            100% { box-shadow: none; }
+        }
+
+        @keyframes mcFlash {
+            0% { opacity: 0; }
+            15% { opacity: 0.9; }
+            100% { opacity: 0; }
+        }
+
+        #mcFlash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(0,255,136,0.35) 45%, transparent 70%);
+            opacity: 0;
+            z-index: 9999;
+            transition: opacity 0.08s ease-out;
+        }
+
+        #mcFlash.active {
+            animation: mcFlash 650ms ease-out forwards;
+        }
+
+        #goalList {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 10px 12px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        #goalList::-webkit-scrollbar { width: 4px; }
+        #goalList::-webkit-scrollbar-thumb { background: rgba(0, 214, 125, 0.4); border-radius: 4px; }
+
+        .goalItem {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 12px;
+            padding: 7px 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            line-height: 1.35;
+        }
+
+        .goalItem:last-child { border-bottom: none; }
+
+        .goalDot {
+            flex-shrink: 0;
+            width: 7px;
+            height: 7px;
+            margin-top: 5px;
+            border-radius: 50%;
+            background: rgba(0, 214, 125, 0.35);
+            border: 1px solid rgba(0, 214, 125, 0.5);
+        }
+
+        .goalItem.active .goalDot {
+            background: var(--green-bright);
+            box-shadow: 0 0 8px var(--green-bright);
+        }
+
+        .goalItem.done {
+            color: var(--text-muted);
+            opacity: 0.65;
+        }
+
+        .goalItem.done .goalDot { background: var(--green); opacity: 0.6; }
+
+        #refreshRow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        #refreshIndicator {
+            flex-shrink: 0;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        #countdownDisplay { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+        #rewardsCard {
+            padding: 14px 16px;
+            background: linear-gradient(160deg, rgba(255, 200, 50, 0.14), rgba(255, 140, 0, 0.08));
+            border: 1px solid rgba(255, 190, 60, 0.35);
+            border-radius: 14px;
+            margin-bottom: 12px;
+        }
+
+        #rewardsTitle {
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #ffcc66;
+        }
+
+        #rewardsTimer {
+            margin-top: 8px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            font-variant-numeric: tabular-nums;
+            color: #ffe8a3;
+        }
+
+        #rewardsMeta {
+            margin-top: 8px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: var(--text-muted);
+        }
+
+        #rewardsMeta b { color: var(--text); }
+
+        #rewardsStatus {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #ffcc66;
+        }
+
+        #rewardsCard.distributing {
+            animation: pulseGlowGold 900ms ease infinite alternate;
+        }
+
+        @keyframes pulseGlowGold {
+            from { box-shadow: 0 0 0 rgba(255, 200, 80, 0); }
+            to { box-shadow: 0 0 24px rgba(255, 200, 80, 0.35); }
+        }
+
+        @media (max-width: 640px) {
+            #ui { top: auto; bottom: 16px; left: 16px; right: 16px; width: auto; }
+            #topBanner { font-size: 12px; padding: 8px 14px; top: 12px; }
+            .stat-value { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
+    <div id="mcFlash"></div>
     <div id="container">
-        <div id="topBanner">Higher Market Cap = Bigger Dick</div>
-        <div id="loading">Loading character...</div>
+        <div id="topBanner">
+            <span class="banner-dot"></span>
+            Higher Market Cap = Bigger Dick
+        </div>
+        <div id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading scene...</div>
+        </div>
         <div id="ui" style="display: none;">
-            <div id="marketCapDisplay">Market Cap: Loading...</div>
-            <div id="scaleDisplay">Model Scale: 1.0x</div>
-            <div id="dickDisplay">Length: -- inches</div>
-                <div id="goalCard" style="width:320px;">
-                    <div id="goalTitle">Market Cap Goal</div>
-                    <div id="goalNumbers">Next Goal: <b><span id="nextGoal">50.0K</span></b> • <b><span id="goalProgress">0%</span></b></div>
+            <div class="panel-header">
+                <img src="pump.png" alt="Alon Penis Index">
+                <div>
+                    <h1>Alon Penis Index</h1>
+                    <p>Live market cap index</p>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-label">Market Cap</div>
+                        <div class="stat-value" id="marketCapDisplay">Connecting token...</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Length</div>
+                        <div class="stat-value" id="dickDisplay">-- in</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Scale</div>
+                        <div class="stat-value" id="scaleDisplay">1.0x</div>
+                    </div>
+                </div>
+                <div id="testMcRow">
+                    <button id="testMcBtn" type="button">+50K Market Cap (Test)</button>
+                    <button id="resetMcBtn" type="button">Reset</button>
+                </div>
+                <div id="rewardsCard">
+                    <div id="rewardsTitle">Holder Rewards Drop</div>
+                    <div id="rewardsTimer">--:--:--</div>
+                    <div id="rewardsMeta">
+                        Pool: <b id="rewardsPool">-- SOL</b><br>
+                        Wallet: <b id="rewardsWallet">--</b>
+                    </div>
+                    <div id="rewardsStatus">Loading rewards timer...</div>
+                </div>
+                <div id="goalCard">
+                    <div id="goalTitle">Next Milestone</div>
+                    <div id="goalNumbers">Target <b><span id="nextGoal">50K</span></b> · <b><span id="goalProgress">0%</span></b></div>
                     <div id="goalBarWrap"><div id="goalBar"></div></div>
-                    <div id="superBadge" style="display:none;">100K Super Burst!</div>
+                    <div id="superBadge">100K Super Burst!</div>
                 </div>
                 <div id="goalList"></div>
-			<div id="refreshRow" style="font-size: 12px; color: #666; margin-top: 6px; display: flex; align-items: center; gap: 8px;">
-				<span id="refreshIndicator" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#cccccc;opacity:0;transition:opacity 0.2s, background 0.2s;"></span>
-				<span id="lastUpdatedDisplay">Waiting for first update...</span>
-				<span id="countdownDisplay" style="margin-left:auto;">Next update —</span>
-			</div>
+                <div id="refreshRow">
+                    <span id="refreshIndicator"></span>
+                    <span id="lastUpdatedDisplay">Waiting for first update...</span>
+                    <span id="countdownDisplay">Next update —</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -151,6 +521,14 @@
                 this.renderer = null;
                 this.avatar = null;
                 this.marketCap = 0;
+                this.testMode = false;
+                this.testMarketCap = null;
+                this.triggeredMilestones = new Set();
+                this.milestonesInitialized = false;
+                this.dickMeshes = {};
+                this.lastDickStyleKey = '';
+                this.dickBaseRotX = -0.05;
+                this.dickBaseRotY = Math.PI / 2;
                 // Rolling goals (emit whenever marketCap crosses these)
                 this.nextEmissionGoal = 50000; // 50k
                 this.nextSuperEmissionGoal = 100000; // 100k
@@ -164,14 +542,12 @@
 				this.ws = null;
 				this.wsReconnectDelayMs = 2000; // start at 2s, backoff to max 10s
 				this.connectWebSocket();
-				// Connect to PumpPortal for real-time token data
-				this.connectPumpPortal();
-                // Load new primary model
                 this.loadPrimaryModel();
 				this.fetchInitialMarketCap();
-				this.refreshIntervalMs = 10000; // match server broadcast cadence
-				this.nextTickAt = Date.now() + this.refreshIntervalMs;
+				this.fetchRewardsState();
+				this.lastUpdateAt = Date.now();
 				this.startCountdownTimer();
+                this.bindTestControls();
                 this.animate();
             }
             
@@ -181,8 +557,8 @@
                 this.scene.background = new THREE.Color(0x0a0a12); // Deep space dark
                 
                 // Camera setup
-                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                this.camera.position.set(0, 3.6, 6.2);
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+                this.camera.position.set(0, 280, 480);
                 
                 // Renderer setup
                 this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -199,7 +575,7 @@
                 this.controls.enableDamping = true;
                 this.controls.dampingFactor = 0.05;
                 // Aim slightly higher to reduce downward tilt on first load
-                this.controls.target.set(0, 1.1, 0);
+                this.controls.target.set(0, 260, 0);
                 this.controls.update();
                 
 				// Balanced lighting (slightly brighter, softer)
@@ -210,10 +586,16 @@
 				this.scene.add(hemiLight);
 
 				const mainLight = new THREE.DirectionalLight(0xffffff, 0.42);
-                mainLight.position.set(-2, 3, 2);
+                mainLight.position.set(-40, 60, 40);
                 mainLight.castShadow = true;
-                mainLight.shadow.mapSize.width = 1024;
-                mainLight.shadow.mapSize.height = 1024;
+                mainLight.shadow.mapSize.width = 2048;
+                mainLight.shadow.mapSize.height = 2048;
+                mainLight.shadow.camera.near = 10;
+                mainLight.shadow.camera.far = 1200;
+                mainLight.shadow.camera.left = -400;
+                mainLight.shadow.camera.right = 400;
+                mainLight.shadow.camera.top = 400;
+                mainLight.shadow.camera.bottom = -400;
                 mainLight.shadow.bias = -0.0005;
                 this.scene.add(mainLight);
                 
@@ -224,106 +606,9 @@
             }
 
 			loadPrimaryModel() {
-				// Load pill character with cupseyface and platform
-				this.loadCharacter();
 				this.loadMoonGround();
+				this.loadAlonModel();
 			}
-            
-            loadCharacter() {
-                // Create a procedural pill: white top, green bottom (#55d292)
-                const pillGroup = new THREE.Group();
-
-                const radius = 1.0; // bigger pill
-                const cylinderHeight = 2.2; // taller pill
-                const segments = 32;
-
-                const whiteMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-                const greenMaterial = new THREE.MeshLambertMaterial({ color: 0x55d292 });
-
-                // Top hemisphere (white)
-                const topHemisphereGeometry = new THREE.SphereGeometry(
-                    radius,
-                    segments,
-                    Math.floor(segments / 2),
-                    0,
-                    Math.PI * 2,
-                    0,
-                    Math.PI / 2
-                );
-                const topHemisphere = new THREE.Mesh(topHemisphereGeometry, whiteMaterial);
-                topHemisphere.position.y = cylinderHeight / 2;
-                topHemisphere.castShadow = true;
-                topHemisphere.receiveShadow = true;
-
-                // Bottom hemisphere (green)
-                const bottomHemisphereGeometry = new THREE.SphereGeometry(
-                    radius,
-                    segments,
-                    Math.floor(segments / 2),
-                    0,
-                    Math.PI * 2,
-                    Math.PI / 2,
-                    Math.PI / 2
-                );
-                const bottomHemisphere = new THREE.Mesh(bottomHemisphereGeometry, greenMaterial);
-                bottomHemisphere.position.y = -cylinderHeight / 2;
-                bottomHemisphere.castShadow = true;
-                bottomHemisphere.receiveShadow = true;
-
-                // Split cylinder into two halves to color each side
-                const halfHeight = cylinderHeight / 2;
-
-                const topCylinderGeometry = new THREE.CylinderGeometry(radius, radius, halfHeight, segments);
-                const topCylinder = new THREE.Mesh(topCylinderGeometry, whiteMaterial);
-                topCylinder.position.y = halfHeight / 2;
-                topCylinder.castShadow = true;
-                topCylinder.receiveShadow = true;
-
-                const bottomCylinderGeometry = new THREE.CylinderGeometry(radius, radius, halfHeight, segments);
-                const bottomCylinder = new THREE.Mesh(bottomCylinderGeometry, greenMaterial);
-                bottomCylinder.position.y = -halfHeight / 2;
-                bottomCylinder.castShadow = true;
-                bottomCylinder.receiveShadow = true;
-
-                pillGroup.add(topHemisphere);
-                pillGroup.add(bottomHemisphere);
-                pillGroup.add(topCylinder);
-                pillGroup.add(bottomCylinder);
-
-                // Orient pill upright
-                pillGroup.position.set(0, 0, 0);
-
-				this.character = pillGroup;
-				this.avatar = pillGroup;
-				this.scene.add(this.character);
-
-				// Add face texture on white half (front-facing)
-				const faceLoader = new THREE.TextureLoader();
-				faceLoader.load('cupseyface.png', (tex) => {
-					tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy?.() || 1;
-					const faceMaterial = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
-					const faceSize = radius * 0.9;
-					const faceGeometry = new THREE.PlaneGeometry(faceSize, faceSize);
-					const faceMesh = new THREE.Mesh(faceGeometry, faceMaterial);
-					// Position roughly centered on the white top half, slightly forward on +Z
-					faceMesh.position.set(0, cylinderHeight / 2 - radius * 0.2, radius + 0.001);
-					faceMesh.renderOrder = 10;
-					pillGroup.add(faceMesh);
-				}, (progress) => {}, (err) => {
-					console.warn('Face texture load failed (cupseyface.png). Place it in /public');
-				});
-
-				// Seat character on platform
-				this.seatCharacterToMoon();
-				
-				// Add pill's dick
-				this.addDick();
-				this.seatCharacterToMoon();
-
-				// Show UI
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('ui').style.display = 'block';
-            }
             
 			connectWebSocket() {
                 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -333,7 +618,18 @@
 					try {
                     const message = JSON.parse(event.data);
                     if (message.type === 'marketcap') {
-                        this.updateMarketCap(message.data, message.fallback);
+                        if (this.testMode) return;
+                        this.updateMarketCap(message.data, {
+                            fallback: !message.realtime,
+                            status: message.status,
+                            source: message.source,
+                            isGraduated: message.isGraduated,
+                            marketCapSol: message.marketCapSol,
+                            realtime: message.realtime,
+                        });
+                    }
+                    if (message.type === 'rewards') {
+                        this.updateRewardsUI(message.data);
                     }
 					} catch {}
                 };
@@ -355,155 +651,37 @@
 				};
 			}
 
-			// Fetch SOL price from CoinGecko
-			async fetchSolPrice() {
-				try {
-					const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-					const data = await res.json();
-					this.solPrice = data.solana.usd;
-					console.log('💲 SOL Price updated:', this.solPrice);
-				} catch (e) {
-					console.warn('Failed to fetch SOL price, using fallback');
-					this.solPrice = this.solPrice || 150; // fallback
-				}
-			}
-
-			// Connect to PumpPortal WebSocket for real-time token trades
-			async connectPumpPortal() {
-				// Fetch token address from server (configured in .env)
-				try {
-					const res = await fetch('/api/token');
-					const data = await res.json();
-					if (data.token) {
-						this.TOKEN_CA = data.token;
-						console.log('🪙 Token loaded from env:', this.TOKEN_CA);
-					} else {
-						console.error('❌ No TOKEN_MINT configured in .env');
-						return;
-					}
-				} catch (e) {
-					console.error('❌ Failed to fetch token from server:', e);
-					return;
-				}
-				
-				this.solPrice = 150; // initial fallback
-				this.useDexScreener = false; // switch to true when marketcap >= 50k
-				this.MIGRATION_THRESHOLD = 50000; // 50k USD
-				
-				// Fetch SOL price immediately and then every 30 seconds
-				this.fetchSolPrice();
-				setInterval(() => this.fetchSolPrice(), 30000);
-				
-				this.pumpWs = new WebSocket('wss://pumpportal.fun/api/data');
-				
-				this.pumpWs.onopen = () => {
-					console.log('🟢 PumpPortal WebSocket connected');
-					
-					// Subscribe to trades on the specific token
-					this.pumpWs.send(JSON.stringify({
-						method: "subscribeTokenTrade",
-						keys: [this.TOKEN_CA]
-					}));
-					console.log('📡 Subscribed to token:', this.TOKEN_CA);
-				};
-				
-				this.pumpWs.onmessage = (event) => {
-					const data = JSON.parse(event.data);
-					
-					// Only process trades for our token
-					if (data.mint === this.TOKEN_CA && data.marketCapSol !== undefined) {
-						// Convert marketCapSol to USD
-						const marketCapUSD = data.marketCapSol * this.solPrice;
-						console.log('🎯 TRADE:', data.txType?.toUpperCase(), '| MC:', marketCapUSD.toFixed(0), 'USD (', data.marketCapSol.toFixed(2), 'SOL )');
-						
-						// Check if we should switch to DexScreener
-						if (marketCapUSD >= this.MIGRATION_THRESHOLD && !this.useDexScreener) {
-							console.log('🚀 Token approaching migration! Switching to DexScreener...');
-							this.useDexScreener = true;
-							this.startDexScreenerPolling();
-						}
-						
-						// Update the app with new marketcap (only if not using DexScreener yet)
-						if (!this.useDexScreener) {
-							this.updateMarketCap(marketCapUSD, false);
-						}
-					} else if (data.message) {
-						console.log('📨', data.message);
-					}
-				};
-				
-				this.pumpWs.onerror = (error) => {
-					console.error('❌ PumpPortal WebSocket error:', error);
-				};
-				
-				this.pumpWs.onclose = () => {
-					console.log('🔴 PumpPortal WebSocket closed, reconnecting in 5s...');
-					setTimeout(() => this.connectPumpPortal(), 5000);
-				};
-			}
-			
-			// Start polling DexScreener when token migrates (backup/post-migration tracking)
-			startDexScreenerPolling() {
-				console.log('📊 Starting DexScreener polling for:', this.TOKEN_CA);
-				
-				const pollDexScreener = async () => {
-					try {
-						const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${this.TOKEN_CA}`);
-						const data = await res.json();
-						
-						if (data.pairs && data.pairs.length > 0) {
-							// Get the pair with highest liquidity
-							const best = data.pairs.sort((a, b) => 
-								(Number(b?.liquidity?.usd || 0) - Number(a?.liquidity?.usd || 0))
-							)[0];
-							
-							const marketCap = Number(best.marketCap || best.fdv || 0);
-							if (marketCap > 0) {
-								console.log('📊 DexScreener MC:', marketCap.toFixed(0), 'USD');
-								this.updateMarketCap(marketCap, false);
-							}
-						}
-					} catch (e) {
-						console.warn('DexScreener fetch failed:', e);
-					}
-				};
-				
-				// Poll immediately then every 10 seconds
-				pollDexScreener();
-				this.dexScreenerInterval = setInterval(pollDexScreener, 10000);
-			}
-
-			// Seat character on moon surface
-			seatCharacterToMoon() {
-				if (!this.character) return;
-				this.character.updateMatrixWorld(true);
+			// Seat a model on the platform surface
+			seatModelToMoon(model) {
+				if (!model) return;
+				model.updateMatrixWorld(true);
 				const groundY = this.moonTopY ?? -2.0;
-				// Prefer bone-based minY (works better for skinned meshes)
-				let minY = Infinity;
-				this.character.traverse((obj) => {
-					if (obj.isBone) {
-						obj.updateMatrixWorld(true);
-						const p = new THREE.Vector3();
-						obj.getWorldPosition(p);
-						if (p.y < minY) minY = p.y;
-					}
-				});
-				// Fallback to Box3 if no bones found
-				if (!Number.isFinite(minY)) {
-					let restore = false;
-					if (this.dickGroup && this.dickGroup.visible !== false) { this.dickGroup.visible = false; restore = true; }
-					const box = new THREE.Box3().setFromObject(this.character);
-					if (restore) this.dickGroup.visible = true;
-					minY = box.min.y;
+				if (this.dickGroup && model === this.traveler) {
+					this.dickGroup.visible = false;
 				}
-				const delta = groundY - minY;
-				if (Math.abs(delta) > 1e-3) this.character.position.y += delta;
+				const box = new THREE.Box3().setFromObject(model);
+				if (this.dickGroup && model === this.traveler) {
+					this.dickGroup.visible = true;
+				}
+				const delta = groundY - box.min.y;
+				if (Math.abs(delta) > 1e-3) model.position.y += delta;
+			}
+
+			checkSceneReady() {
+				if (this.travelerReady) {
+					document.getElementById('loading').style.display = 'none';
+					document.getElementById('ui').style.display = 'block';
+				}
+			}
+
+			seatCharacterToMoon() {
+				this.seatModelToMoon(this.traveler);
 			}
 
 			// Load a platform with pump.fun colors (neon green/teal)
 			loadMoonGround() {
-				const platformRadius = 4;
-				const platformHeight = 0.3;
+				const platformRadius = 240;
+				const platformHeight = 6;
 				
 				// Platform base - pump.fun dark teal/green
 				const platformGeo = new THREE.CylinderGeometry(platformRadius, platformRadius * 1.1, platformHeight, 48);
@@ -524,7 +702,7 @@
 				this.scene.add(top);
 				
 				// Glowing neon green ring around the platform edge
-				const ringGeo = new THREE.TorusGeometry(platformRadius, 0.1, 16, 64);
+				const ringGeo = new THREE.TorusGeometry(platformRadius, 2, 16, 64);
 				const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
 				const ring = new THREE.Mesh(ringGeo, ringMat);
 				ring.rotation.x = -Math.PI / 2;
@@ -532,7 +710,7 @@
 				this.scene.add(ring);
 				
 				// Inner accent ring
-				const innerRingGeo = new THREE.TorusGeometry(platformRadius * 0.6, 0.05, 16, 48);
+				const innerRingGeo = new THREE.TorusGeometry(platformRadius * 0.6, 1, 16, 48);
 				const innerRingMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
 				const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
 				innerRing.rotation.x = -Math.PI / 2;
@@ -542,35 +720,68 @@
 				this.moonTopY = -2;
 			}
 
-		loadWealthyTraveler() {
+		loadAlonModel() {
 				try {
-					const loader = new THREE.FBXLoader();
-				loader.load('Wealthy_Traveler_0715225309_texture.fbx', (object) => {
-                    this.traveler = object;
-                    this.traveler.scale.setScalar(0.03); // make traveler bigger
-						this.traveler.position.set(0.0, 0, 0.6);
-						this.traveler.traverse((child) => {
+					const loader = new THREE.GLTFLoader();
+					loader.load('alon.glb', (gltf) => {
+						const model = gltf.scene || gltf.scenes?.[0];
+						if (!model) {
+							this.travelerReady = true;
+							this.checkSceneReady();
+							return;
+						}
+
+						this.modelProfile = {
+							targetHeight: 520,
+							dickScaleMul: 0.38,
+							rotationY: -Math.PI / 2,
+							groinHeightRatio: 0.468,
+							groinFrontAxis: 'max',
+							groinDepthInset: 0.06,
+							groinYOffsetRatio: -0.064,
+							groinZPullBackRatio: 0.06,
+							dickRotX: -0.05,
+							dickRotY: Math.PI / 2,
+						};
+
+						const tempBox = new THREE.Box3().setFromObject(model);
+						const size = new THREE.Vector3();
+						tempBox.getSize(size);
+						const targetHeight = this.modelProfile.targetHeight;
+						const scaleFactor = size.y > 0.0001 ? targetHeight / size.y : 1;
+						model.scale.setScalar(scaleFactor);
+
+						this.traveler = model;
+						this.character = model;
+						model.position.set(0, 0, 0);
+						model.rotation.y = this.modelProfile.rotationY;
+
+						model.traverse((child) => {
 							if (child.isMesh) {
 								child.castShadow = true;
 								child.receiveShadow = true;
 							}
 						});
-						this.scene.add(this.traveler);
- 					// Use traveler as the active character/avatar for downstream logic
- 					this.character = this.traveler;
- 					this.avatar = this.traveler;
-					// Seat character on moon surface
-					this.seatCharacterToMoon();
-                    // Attach growth-driven dick to traveler and show UI
-					this.addDick();
-					this.seatCharacterToMoon();
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('ui').style.display = 'block';
-				}, undefined, (err) => {
-					console.warn('Unable to load Wealthy Traveler FBX. Ensure the file exists in /public.', err);
+
+						this.scene.add(model);
+						this.seatModelToMoon(model);
+						this.dickHost = model;
+						requestAnimationFrame(() => {
+							requestAnimationFrame(() => {
+								if (this.traveler) this.addDick(this.traveler);
+							});
+						});
+						this.travelerReady = true;
+						this.checkSceneReady();
+					}, undefined, (err) => {
+						console.warn('Unable to load alon.glb. Ensure the file exists in /public.', err);
+						this.travelerReady = true;
+						this.checkSceneReady();
 					});
 				} catch (e) {
-					console.warn('FBX loader not available.', e);
+					console.warn('GLTF loader not available.', e);
+					this.travelerReady = true;
+					this.checkSceneReady();
 				}
 			}
 
@@ -668,23 +879,194 @@
 			startCountdownTimer() {
 				const countdownEl = document.getElementById('countdownDisplay');
 				setInterval(() => {
-					const remainingMs = Math.max(0, this.nextTickAt - Date.now());
-					const seconds = (remainingMs / 1000).toFixed(1);
-					countdownEl.textContent = `Next update ${seconds}s`;
-				}, 200);
+					if (this.testMode) {
+						countdownEl.textContent = 'Test mode';
+						return;
+					}
+					if (this.isLiveFeed) {
+						countdownEl.textContent = 'Live on-chain';
+						return;
+					}
+					const ago = Math.max(0, (Date.now() - (this.lastUpdateAt || Date.now())) / 1000);
+					countdownEl.textContent = `Updated ${ago.toFixed(0)}s ago`;
+				}, 500);
+            }
+
+            bindTestControls() {
+                const bumpBtn = document.getElementById('testMcBtn');
+                const resetBtn = document.getElementById('resetMcBtn');
+                if (bumpBtn) {
+                    bumpBtn.addEventListener('click', () => this.bumpTestMarketCap());
+                }
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => this.resetTestMarketCap());
+                }
+            }
+
+            bumpTestMarketCap() {
+                this.testMode = true;
+                const base = this.testMarketCap ?? (typeof this.marketCap === 'number' ? this.marketCap : 7000);
+                this.testMarketCap = base + 50000;
+                this.updateMarketCap(this.testMarketCap, {
+                    status: 'live',
+                    source: 'test',
+                    isGraduated: true,
+                    realtime: false,
+                });
+            }
+
+            resetTestMarketCap() {
+                this.testMode = false;
+                this.testMarketCap = null;
+                this.triggeredMilestones = new Set();
+                this.milestonesInitialized = false;
+                this.lastDickStyleKey = '';
+                this.fetchInitialMarketCap();
+            }
+
+            getMilestones() {
+                return [
+                    { v: 15000, label: '15K: First Cum 💦', burst: 'normal' },
+                    { v: 25000, label: '25K: Vein Monster 🩸', veins: true },
+                    { v: 40000, label: '40K: Double Nut Blast 💦💦', burst: 'normal' },
+                    { v: 60000, label: '60K: Dick Turns Black 🍆', black: true },
+                    { v: 100000, label: '100K: Earthquake Throb 🫨', shake: true, burst: 'normal' },
+                    { v: 150000, label: '150K: Golden Cock 👑', gold: true, burst: 'super' },
+                    { v: 200000, label: '200K: Cum Tsunami 🌊', burst: 'super' },
+                    { v: 300000, label: '300K: Rainbow Chaos 🌈', rainbow: true, burst: 'mega' },
+                    { v: 500000, label: '500K: Nuclear Load ☢️', burst: 'mega', flash: true },
+                    { v: 750000, label: '750K: Glow Stick From Hell 🔥', glow: true, burst: 'super' },
+                    { v: 1000000, label: '1M: GOD MODE 👑🔥', god: true, burst: 'mega', flash: true },
+                ];
+            }
+
+            getActiveDickStyle(marketCap) {
+                const cap = marketCap || 0;
+                const ms = this.getMilestones();
+                const style = {
+                    veins: false, black: false, shake: false, gold: false,
+                    rainbow: false, glow: false, god: false,
+                };
+                for (const m of ms) {
+                    if (cap >= m.v) {
+                        if (m.veins) style.veins = true;
+                        if (m.black) style.black = true;
+                        if (m.shake) style.shake = true;
+                        if (m.gold) { style.gold = true; style.black = false; }
+                        if (m.rainbow) style.rainbow = true;
+                        if (m.glow) style.glow = true;
+                        if (m.god) style.god = true;
+                    }
+                }
+                if (style.god) {
+                    style.rainbow = true;
+                    style.glow = true;
+                    style.shake = true;
+                    style.gold = true;
+                }
+                return style;
+            }
+
+            formatGoalCap(n) {
+                if (n >= 1000000) return `${(n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1)}M`;
+                return `${(n / 1000).toFixed(0)}K`;
+            }
+
+            applyMilestoneVisuals(marketCap) {
+                const style = this.getActiveDickStyle(marketCap);
+                const styleKey = JSON.stringify(style);
+                if (styleKey !== this.lastDickStyleKey) {
+                    this.lastDickStyleKey = styleKey;
+                    this.updateDickGeometry();
+                }
+            }
+
+            showMilestoneBadge(text) {
+                const badge = document.getElementById('superBadge');
+                if (!badge) return;
+                badge.style.display = 'inline-block';
+                badge.textContent = text;
+                setTimeout(() => { badge.style.display = 'none'; }, 3200);
+            }
+
+            flashScreen() {
+                const el = document.getElementById('mcFlash');
+                if (!el) return;
+                el.classList.remove('active');
+                void el.offsetWidth;
+                el.classList.add('active');
+                setTimeout(() => el.classList.remove('active'), 700);
+            }
+
+            fireMilestoneEvent(m) {
+                if (m.burst === 'normal') {
+                    setTimeout(() => this.emitLiquidBurst(false, 0xffffff), 200);
+                } else if (m.burst === 'super') {
+                    setTimeout(() => this.emitLiquidBurst(true, 0xffffff), 200);
+                } else if (m.burst === 'mega') {
+                    setTimeout(() => this.emitMegaBurst(), 200);
+                }
+                if (m.flash) this.flashScreen();
+                this.showMilestoneBadge(`${this.formatGoalCap(m.v)} — ${m.label}`);
+                const card = document.getElementById('goalCard');
+                card?.classList.add('celebrate');
+                setTimeout(() => card?.classList.remove('celebrate'), 900);
+                this.applyMilestoneVisuals(this.marketCap);
+            }
+
+            checkMilestoneTriggers(marketCap) {
+                if (!this.milestonesInitialized) {
+                    this.milestonesInitialized = true;
+                    for (const m of this.getMilestones()) {
+                        if (marketCap >= m.v) this.triggeredMilestones.add(m.v);
+                    }
+                    this.applyMilestoneVisuals(marketCap);
+                    return;
+                }
+                for (const m of this.getMilestones()) {
+                    if (marketCap >= m.v && !this.triggeredMilestones.has(m.v)) {
+                        this.triggeredMilestones.add(m.v);
+                        this.fireMilestoneEvent(m);
+                    }
+                }
             }
             
-            updateMarketCap(marketCap, isFallback = false) {
+            updateMarketCap(marketCap, meta = {}) {
+                const isConnecting = meta.status === 'connecting' || marketCap == null;
+                if (isConnecting) {
+                    this.isLiveFeed = false;
+                    this.marketCap = null;
+                    document.getElementById('marketCapDisplay').textContent = 'Connecting token...';
+                    document.getElementById('dickDisplay').textContent = '-- in';
+                    document.getElementById('scaleDisplay').textContent = '--';
+                    document.getElementById('lastUpdatedDisplay').textContent = 'Connecting token...';
+                    document.getElementById('countdownDisplay').textContent = 'Connecting...';
+                    document.getElementById('nextGoal').textContent = '--';
+                    document.getElementById('goalProgress').textContent = '--';
+                    document.getElementById('goalBar').style.width = '0%';
+                    this.renderGoalsList(0);
+                    return;
+                }
+
+                const isFallback = meta === true || meta.fallback === true;
+                this.isLiveFeed = !isFallback && meta.realtime !== false;
                 this.marketCap = marketCap;
-				// Pulse refresh indicator and update timestamps/counters
 				const indicator = document.getElementById('refreshIndicator');
 				const lastUpdatedEl = document.getElementById('lastUpdatedDisplay');
 				indicator.style.opacity = 1;
-				indicator.style.background = isFallback ? '#ff8800' : '#00aa44';
+				indicator.style.background = isFallback ? '#ff8800' : '#00ff88';
 				setTimeout(() => { indicator.style.opacity = 0; }, 250);
 				const now = new Date();
-				lastUpdatedEl.textContent = `Last updated ${now.toLocaleTimeString()}`;
-				this.nextTickAt = Date.now() + this.refreshIntervalMs;
+				this.lastUpdateAt = Date.now();
+                const sourceLabel = meta.source === 'test'
+                    ? 'Test mode'
+                    : meta.source === 'amm'
+                    ? 'PumpSwap AMM'
+                    : meta.source === 'bonding-curve'
+                        ? 'Bonding curve'
+                        : 'On-chain';
+                const phaseLabel = meta.isGraduated ? 'Graduated' : 'Bonding curve';
+				lastUpdatedEl.textContent = `${sourceLabel} · ${phaseLabel} · ${now.toLocaleTimeString()}`;
 				
                 // Length growth mapping: 7k => ~6 inches, 200k => ~45 inches (log scale)
 				const baseline = 7000;
@@ -692,74 +1074,42 @@
 				const logTerm = Math.log(Math.max(marketCap, 1) / baseline) / Math.log(10);
                 this.dickTargetLengthInches = Math.max(4, Math.min(60, 6 + gainPerLog10 * logTerm));
 				
-                // Update UI (display in thousands)
+                // Update UI
 				const marketCapK = marketCap / 1000;
-				const marketCapText = `$${marketCapK.toLocaleString(undefined, { maximumFractionDigits: 2 })}K`;
-				document.getElementById('marketCapDisplay').innerHTML = `Market Cap: ${marketCapText}`;
-                document.getElementById('dickDisplay').innerHTML = 
-                    `Length: ${this.dickTargetLengthInches.toFixed(1)} inches`;
+				const marketCapText = marketCap >= 1000000
+					? `$${(marketCap / 1000000).toFixed(2)}M`
+					: `$${marketCapK.toLocaleString(undefined, { maximumFractionDigits: 1 })}K`;
+				document.getElementById('marketCapDisplay').textContent = marketCapText;
+                document.getElementById('dickDisplay').textContent =
+                    `${this.dickTargetLengthInches.toFixed(1)} in`;
+                document.getElementById('scaleDisplay').textContent =
+                    `${(this.dickTargetLengthInches / 6).toFixed(2)}x`;
 
                 // Update goals list with milestone tracking
-                const milestones = [15000, 40000, 60000, 200000, 500000, 1000000];
+                const milestones = this.getMilestones().map(m => m.v);
                 
                 // Find next milestone
                 let nextMilestone = milestones.find(m => m > marketCap) || milestones[milestones.length - 1];
                 let prevMilestone = milestones.filter(m => m <= marketCap).pop() || 0;
                 
                 // Format display (K, M, etc)
-                const formatNum = (n) => n >= 1000000 ? (n/1000000).toFixed(1) + 'M' : (n/1000).toFixed(0) + 'K';
-                document.getElementById('nextGoal').textContent = formatNum(nextMilestone);
+                document.getElementById('nextGoal').textContent = this.formatGoalCap(nextMilestone);
                 
-                const progressPct = Math.min(99, ((marketCap - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
+                const progressPct = prevMilestone === nextMilestone
+                    ? 100
+                    : Math.min(99, ((marketCap - prevMilestone) / (nextMilestone - prevMilestone)) * 100);
 				document.getElementById('goalProgress').textContent = `${progressPct.toFixed(0)}%`;
 				document.getElementById('goalBar').style.width = `${progressPct}%`;
                 
-                // Render the full goals list on every update
                 this.renderGoalsList(marketCap);
-
-                // Trigger bursts at milestones
-                const burstMilestones = [15000, 40000, 200000]; // cum milestones
-                const superBurstMilestones = [60000, 500000, 1000000]; // mega milestones
-                
-                // Check for regular bursts
-                if (!this.reachedBurstMilestones) this.reachedBurstMilestones = new Set();
-                burstMilestones.forEach(m => {
-                    if (marketCap >= m && !this.reachedBurstMilestones.has(m)) {
-                        this.reachedBurstMilestones.add(m);
-                        setTimeout(() => this.emitLiquidBurst(false), 1500);
-                        const card = document.getElementById('goalCard');
-                        card.classList.add('celebrate');
-                        setTimeout(() => card.classList.remove('celebrate'), 900);
-                    }
-                });
-                
-                // Check for super bursts (bigger milestones)
-                if (!this.reachedSuperMilestones) this.reachedSuperMilestones = new Set();
-                superBurstMilestones.forEach(m => {
-                    if (marketCap >= m && !this.reachedSuperMilestones.has(m)) {
-                        this.reachedSuperMilestones.add(m);
-                        setTimeout(() => this.emitLiquidBurst(true), 1500);
-                        const badge = document.getElementById('superBadge');
-                        badge.style.display = 'inline-block';
-                        const formatNum = (n) => n >= 1000000 ? (n/1000000).toFixed(0) + 'M' : (n/1000).toFixed(0) + 'K';
-                        badge.textContent = `${formatNum(m)} MILESTONE! 🔥`;
-                        setTimeout(() => { badge.style.display = 'none'; }, 3000);
-                    }
-                });
-                
+                this.checkMilestoneTriggers(marketCap);
+                this.applyMilestoneVisuals(marketCap);
             }
 
 			renderGoalsList(currentCap) {
 				const el = document.getElementById('goalList');
 				if (!el) return;
-                const goals = [
-                    { v: 15000, label: '15K: First Cum 💦' },
-                    { v: 40000, label: '40K: Big Cum 💦💦' },
-                    { v: 60000, label: '60K: Dick Turns Black 🍆' },
-                    { v: 200000, label: '200K: HUGE CUM 💦💦💦' },
-                    { v: 500000, label: '500K: MEGA EXPLOSION 🌊' },
-                    { v: 1000000, label: '1M: GOD MODE 🔥👑🔥' }
-                ];
+                const goals = this.getMilestones();
                 const lengthFor = (cap) => {
                     const baseline = 7000;
                     const gainPerLog10 = 26.79;
@@ -769,11 +1119,17 @@
 				el.innerHTML = goals.map(g => {
 					const cls = currentCap >= g.v ? 'goalItem done' : (currentCap >= g.v - 5000 ? 'goalItem active' : 'goalItem');
                     const inches = lengthFor(g.v).toFixed(1);
-                    return `<div class="${cls}"><span class="goalDot"></span><span>${(g.v/1000).toFixed(0)}K — ${g.label} • ~${inches} in</span></div>`;
+                    return `<div class="${cls}"><span class="goalDot"></span><span>${this.formatGoalCap(g.v)} — ${g.label} • ~${inches} in</span></div>`;
 				}).join('');
 			}
 
-            emitLiquidBurst(isSuper) {
+            emitMegaBurst() {
+                this.emitLiquidBurst(true, 0xffffff);
+                setTimeout(() => this.emitLiquidBurst(true, 0xffdd44), 400);
+                setTimeout(() => this.emitLiquidBurst(true, 0xff66cc), 800);
+            }
+
+            emitLiquidBurst(isSuper, color = 0xffffff) {
 				if (!this.dickGroup) return;
 				if (!this.particles) this.particles = [];
                 // Determine emission origin at the head tip in world space
@@ -794,12 +1150,13 @@
                     forwardWorld = new THREE.Vector3(0, 0, 1).applyQuaternion(this.traveler?.quaternion || new THREE.Quaternion()).normalize();
                 }
 
-                const count = isSuper ? 1400 : 520;
+                const count = isSuper ? 1800 : 520;
 				for (let i = 0; i < count; i++) {
-                    const sizeMul = isSuper ? 3.8 : 2.6;
+                    const sizeMul = isSuper ? 4.2 : 2.6;
                     const dropSize = (0.035 + Math.random()*0.07) * sizeMul;
                     const geom = new THREE.SphereGeometry(dropSize, 8, 8);
-                    const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                    const mat = new THREE.MeshBasicMaterial({ color: color === 0xffffff && Math.random() > 0.7
+                        ? (Math.random() > 0.5 ? 0xffeeaa : 0xff88cc) : color });
 					const p = new THREE.Mesh(geom, mat);
                     p.position.copy(worldOrigin);
                     const forwardSpeed = isSuper ? 4.5 : 3.0;
@@ -812,36 +1169,105 @@
 				}
 			}
             
-            addDick() {
-                // Add the organ at a temp position in front of the model
-                const host = this.traveler || this.character || this.avatar;
-                if (!host) return;
+            findDickAnchorBone(host) {
+                let best = null;
+                let bestScore = -1;
+                host.traverse((child) => {
+                    if (!child.isBone) return;
+                    const name = (child.name || '').toLowerCase();
+                    let score = 0;
+                    if (/hip|pelvis/.test(name)) score = 100;
+                    else if (/spine1|spine_01|spine\.001/.test(name)) score = 80;
+                    else if (name === 'root' || name.endsWith(':root')) score = 60;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        best = child;
+                    }
+                });
+                return best;
+            }
 
-                // Remove old group
-                if (this.dickGroup && this.dickGroup.parent) {
-                    this.dickGroup.parent.remove(this.dickGroup);
-                }
-                this.dickGroup = new THREE.Group();
+            computeCharacterMetrics(host) {
+                host.updateMatrixWorld(true);
+                const savedVisible = this.dickGroup?.visible;
+                if (this.dickGroup) this.dickGroup.visible = false;
 
-                // Position dick at the center/groin area of the pill
                 const box = new THREE.Box3().setFromObject(host);
                 const size = new THREE.Vector3();
                 const center = new THREE.Vector3();
                 box.getSize(size);
                 box.getCenter(center);
-                const height = size.y || 1;
-				
-				// For pill: place at center height (where green meets white), slightly forward
-				const placeY = center.y - height * 0.15; // slightly below center
-				const forwardOffset = size.z * 0.5; // in front of the pill
-				
-				this.dickGroup.position.set(0, placeY - host.position.y, forwardOffset);
-				host.add(this.dickGroup);
 
-                // Initialize length and generate geometry
-				this.dickLengthInches = this.dickLengthInches || 4.5;
-				this.dickTargetLengthInches = this.dickTargetLengthInches || 4.5;
-                this.dickBaseY = this.dickGroup.position.y;
+                if (this.dickGroup) this.dickGroup.visible = savedVisible !== false;
+
+                const profile = this.modelProfile || {};
+                const parentScale = host.scale.x || 1;
+                const worldHeight = Math.max(size.y, 0.5);
+                const worldDepth = Math.max(size.z, 0.2);
+                const worldWidth = Math.max(size.x, 0.2);
+                const groinHeightRatio = profile.groinHeightRatio ?? 0.46;
+                const groinDepthInset = profile.groinDepthInset ?? 0.02;
+                const frontAxis = profile.groinFrontAxis || 'max';
+
+                const groinY = box.min.y + worldHeight * groinHeightRatio
+                    + (profile.groinYOffsetRatio != null ? worldHeight * profile.groinYOffsetRatio : (profile.groinYOffsetWorld || 0));
+                const groinX = center.x;
+                const pullBack = profile.groinZPullBackRatio != null
+                    ? worldDepth * profile.groinZPullBackRatio
+                    : (profile.groinZPullBack || 0);
+                let groinZ;
+                if (frontAxis === 'min') {
+                    groinZ = box.min.z + worldDepth * groinDepthInset + pullBack;
+                } else {
+                    groinZ = box.max.z - worldDepth * groinDepthInset - pullBack;
+                }
+
+                const groinWorld = new THREE.Vector3(groinX, groinY, groinZ);
+                const groinLocal = host.worldToLocal(groinWorld.clone());
+
+                return {
+                    worldHeight,
+                    worldWidth,
+                    worldDepth,
+                    groinLocal,
+                    parentScale,
+                    localHeight: worldHeight / parentScale,
+                };
+            }
+
+            addDick(host) {
+                host = host || this.dickHost || this.traveler;
+                if (!host) return;
+
+                if (this.dickGroup && this.dickGroup.parent) {
+                    this.dickGroup.parent.remove(this.dickGroup);
+                }
+
+                this.characterMetrics = this.computeCharacterMetrics(host);
+                this.dickAnchor = this.findDickAnchorBone(host);
+                this.dickGroup = new THREE.Group();
+                this.dickGroup.name = 'DickAnchor';
+
+                const profile = this.modelProfile || {};
+                const attachParent = this.dickAnchor || host;
+                if (this.dickAnchor) {
+                    this.dickGroup.position.set(0, -this.characterMetrics.worldHeight * 0.02, -this.characterMetrics.worldDepth * 0.04);
+                    this.dickGroup.rotation.set(profile.dickRotX ?? -0.15, profile.dickRotY ?? 0, 0);
+                } else {
+                    this.dickGroup.position.copy(this.characterMetrics.groinLocal);
+                    this.dickGroup.rotation.set(profile.dickRotX ?? -0.12, profile.dickRotY ?? 0, 0);
+                }
+                this.dickBaseRotX = this.dickGroup.rotation.x;
+                this.dickBaseRotY = this.dickGroup.rotation.y;
+
+                const parentScale = this.characterMetrics.parentScale || host.scale.x || 1;
+                this.dickGroup.scale.setScalar(1 / parentScale);
+
+                attachParent.add(this.dickGroup);
+                this.dickGroup.renderOrder = 10;
+
+                this.dickLengthInches = this.dickLengthInches || 4.5;
+                this.dickTargetLengthInches = this.dickTargetLengthInches || 4.5;
                 this.updateDickGeometry();
             }
 
@@ -850,103 +1276,250 @@
 				fetch('/api/marketcap')
 					.then(r => r.json())
 					.then(d => {
-						if (d && typeof d.marketCap === 'number') {
-							this.updateMarketCap(d.marketCap, d.fallback);
+						if (d?.status === 'connecting' || d?.marketCap == null) {
+							this.updateMarketCap(null, { status: 'connecting' });
+							return;
 						}
+						if (d && typeof d.marketCap === 'number') {
+							this.updateMarketCap(d.marketCap, {
+								fallback: !d.realtime,
+								status: d.status,
+								source: d.source,
+								isGraduated: d.isGraduated,
+								realtime: d.realtime,
+							});
+						}
+					})
+					.catch(() => {
+						this.updateMarketCap(null, { status: 'connecting' });
+					});
+			}
+
+			fetchRewardsState() {
+				fetch('/api/rewards')
+					.then(r => r.json())
+					.then(d => {
+						if (d && d.timerEndsAt) this.updateRewardsUI(d);
 					})
 					.catch(() => {});
 			}
 
+			updateRewardsUI(data) {
+				if (!data) return;
+				const card = document.getElementById('rewardsCard');
+				const timerEl = document.getElementById('rewardsTimer');
+				const poolEl = document.getElementById('rewardsPool');
+				const walletEl = document.getElementById('rewardsWallet');
+				const statusEl = document.getElementById('rewardsStatus');
+
+				const remainingMs = Math.max(0, data.remainingMs ?? (data.timerEndsAt - Date.now()));
+				const totalSec = Math.ceil(remainingMs / 1000);
+				const h = Math.floor(totalSec / 3600);
+				const m = Math.floor((totalSec % 3600) / 60);
+				const s = totalSec % 60;
+				timerEl.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+				poolEl.textContent = `${Number(data.poolSol || 0).toFixed(4)} SOL`;
+				const wallet = data.rewardsWallet || '';
+				walletEl.textContent = wallet ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}` : '--';
+
+				if (data.lastDistributionStatus === 'running') {
+					card.classList.add('distributing');
+					statusEl.textContent = data.lastDistributionMessage || 'Distributing to holders...';
+				} else if (data.lastDistributionStatus === 'complete') {
+					card.classList.remove('distributing');
+					statusEl.textContent = data.lastDistributionMessage || 'Last drop complete — next in 1 hour';
+				} else if (data.lastDistributionStatus === 'failed') {
+					card.classList.remove('distributing');
+					let failMsg = data.lastDistributionMessage || 'Last drop failed';
+					if (/\.env|REWARDS_PRIVATE_KEY/i.test(failMsg)) failMsg = 'Last drop failed';
+					statusEl.textContent = failMsg;
+				} else if (!data.canDistribute) {
+					card.classList.remove('distributing');
+					statusEl.textContent = remainingMs <= 0 ? 'Distributing soon...' : 'SOL split to holders when timer hits zero';
+				} else {
+					card.classList.remove('distributing');
+					statusEl.textContent = remainingMs <= 0 ? 'Distributing soon...' : 'SOL split to holders when timer hits zero';
+				}
+			}
+
 			updateDickGeometry() {
 				if (!this.dickGroup) return;
-				// Clear previous children
 				while (this.dickGroup.children.length > 0) {
 					this.dickGroup.remove(this.dickGroup.children[0]);
 				}
-				
-                // Convert inches to scene units (smaller overall ratio)
-                const unitsPerInch = 0.13;
-				const lengthUnits = this.dickLengthInches;
-				const shaftLength = Math.max(0.5, lengthUnits * unitsPerInch);
-                // Girth grows with market cap (sublinear) — thicker overall
-                const baseRadius = 0.16;
-                const lengthProgress = Math.max(0, Math.min(1, (lengthUnits - 6) / (45 - 6)));
-                const shaftRadius = baseRadius + 0.18 * Math.pow(lengthProgress, 0.7);
 
-                // Always brown shaft and pink head (no full black override)
-                const shaftColor = 0x8B4513;
-                const headColor = 0xFFC0CB;
-                const shaftMaterial = new THREE.MeshLambertMaterial({ color: shaftColor });
-                const headMaterial = new THREE.MeshLambertMaterial({ color: headColor });
+                const charH = this.characterMetrics?.worldHeight || 1.6;
+                const dickScaleMul = this.modelProfile?.dickScaleMul ?? 1;
+                const dickH = charH * dickScaleMul;
+                const lengthInches = Math.max(4, this.dickLengthInches || 4.5);
+                const lengthProgress = Math.max(0, Math.min(1, (lengthInches - 4) / (60 - 4)));
+                const sizeMul = 1 + lengthProgress * 1.85;
 
-                // Straight shaft (cylinder oriented along Z)
-                const shaftGeometry = new THREE.CylinderGeometry(shaftRadius, shaftRadius, shaftLength, 20);
-                const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+                const shaftLength = dickH * (lengthInches / 6) * 0.24 * (0.85 + lengthProgress * 0.35);
+                const shaftRadius = dickH * 0.055 * sizeMul;
+                const baseRadius = shaftRadius * 1.12;
+                const tipRadius = shaftRadius * 0.92;
+
+                const style = this.getActiveDickStyle(this.marketCap);
+                let shaftColor = 0x8B4513;
+                let headColor = 0xFFC0CB;
+                let ballColor = 0x8B4513;
+                let hairColor = 0x3a2a1a;
+
+                if (style.black) {
+                    shaftColor = 0x0a0a0a;
+                    headColor = 0x181818;
+                    ballColor = 0x050505;
+                    hairColor = 0x000000;
+                }
+                if (style.gold) {
+                    shaftColor = 0xDAA520;
+                    headColor = 0xFFE55C;
+                    ballColor = 0xB8860B;
+                    hairColor = 0x5c4a00;
+                }
+
+                const shaftMaterial = new THREE.MeshLambertMaterial({
+                    color: shaftColor,
+                    emissive: style.glow ? 0x331100 : 0x000000,
+                    emissiveIntensity: style.glow ? 0.35 : 0,
+                });
+                const headMaterial = new THREE.MeshLambertMaterial({
+                    color: headColor,
+                    emissive: style.glow ? 0x442200 : 0x000000,
+                    emissiveIntensity: style.glow ? 0.4 : 0,
+                });
+
+                const shaft = new THREE.Mesh(
+                    new THREE.CylinderGeometry(tipRadius, baseRadius, shaftLength, 24),
+                    shaftMaterial
+                );
                 shaft.rotation.x = Math.PI / 2;
                 shaft.castShadow = true;
                 shaft.receiveShadow = true;
-				
-				// Head (hemisphere at the tip)
-				const headRadius = shaftRadius * 1.15;
-				const headGeometry = new THREE.SphereGeometry(headRadius, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2);
-                const head = new THREE.Mesh(headGeometry, headMaterial);
+                shaft.renderOrder = 10;
+
+                const headRadius = shaftRadius * 1.28;
+                const head = new THREE.Mesh(
+                    new THREE.SphereGeometry(headRadius, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+                    headMaterial
+                );
                 head.rotation.x = Math.PI / 2;
                 head.castShadow = true;
                 head.receiveShadow = true;
-				
-                // Position cylinder base reference (closer to body)
-                const baseZ = 0.015;
+                head.renderOrder = 10;
+
+                const baseZ = -shaftRadius * 0.75;
                 shaft.position.z = baseZ + shaftLength / 2;
-                head.position.z = baseZ + shaftLength;
-                // Keep a reference to the head for emissions
+                head.position.z = baseZ + shaftLength + headRadius * 0.05;
+
                 this.dickHeadMesh = head;
                 this.dickHeadRadius = headRadius;
-				
-                // Keep slight offset on Y to avoid clipping traveler's mesh (applied once in addDick via baseY)
-				
-				this.dickGroup.add(shaft);
-                this.dickGroup.add(head);
-				
-				// Balls
-				const ballMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
-                const baseBall = 0.20;
-                const ballRadius = baseBall + 0.20 * Math.pow(lengthProgress, 0.7); // balls scale with cap too
-				const ballOffsetY = -ballRadius * 0.65; // sit slightly below shaft base
-				const ballOffsetZ = baseZ + 0.16; // near base
-                const leftBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
-				leftBall.position.set(-ballRadius * 1.05, ballOffsetY, ballOffsetZ);
-				leftBall.castShadow = true;
-				leftBall.receiveShadow = true;
-                const rightBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 14), ballMaterial);
-				rightBall.position.set(ballRadius * 1.05, ballOffsetY - 0.02, ballOffsetZ + 0.02);
-				rightBall.castShadow = true;
-				rightBall.receiveShadow = true;
-				this.dickGroup.add(leftBall);
-				this.dickGroup.add(rightBall);
 
-				// Pubic hair (procedural cones around the base)
-				const pubesGroup = new THREE.Group();
-				const pubesCount = 220;
-				const hairMaterial = new THREE.MeshLambertMaterial({ color: 0x3a2a1a });
-				for (let i = 0; i < pubesCount; i++) {
-					const r = shaftRadius * (1.0 + Math.random() * 0.9); // around shaft base
-					const theta = Math.random() * Math.PI * 2;
-					const hx = r * Math.cos(theta);
-					const hz = baseZ + (Math.random() - 0.5) * 0.10;
-					const hy = (Math.random() - 0.2) * 0.06; // slight vertical scatter
-					const hLen = 0.08 + Math.random() * 0.08;
-					const hRad = 0.006 + Math.random() * 0.006;
-					const hairGeo = new THREE.ConeGeometry(hRad, hLen, 6);
-					const hair = new THREE.Mesh(hairGeo, hairMaterial);
-					// Cones point along +Y by default; add some random tilt
-					hair.position.set(hx, hy, hz);
-					hair.rotation.x = (Math.random() - 0.5) * 0.6;
-					hair.rotation.z = (Math.random() - 0.5) * 0.6;
-					hair.rotation.y = Math.random() * Math.PI * 2;
-					hair.castShadow = true;
-					pubesGroup.add(hair);
-				}
-				this.dickGroup.add(pubesGroup);
+                this.dickGroup.add(shaft);
+                this.dickGroup.add(head);
+
+                const ballMaterial = new THREE.MeshLambertMaterial({
+                    color: ballColor,
+                    emissive: style.glow ? 0x221100 : 0x000000,
+                    emissiveIntensity: style.glow ? 0.25 : 0,
+                });
+                const ballRadius = shaftRadius * 0.95 * Math.pow(sizeMul, 0.85);
+                const ballSpread = ballRadius * 0.95;
+                const ballOffsetY = -ballRadius * 0.35;
+                const ballOffsetZ = baseZ + ballRadius * 0.05;
+
+                const leftBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 20, 16), ballMaterial);
+                leftBall.position.set(-ballSpread, ballOffsetY, ballOffsetZ);
+                leftBall.castShadow = true;
+                leftBall.receiveShadow = true;
+
+                const rightBall = new THREE.Mesh(new THREE.SphereGeometry(ballRadius * 0.98, 20, 16), ballMaterial);
+                rightBall.position.set(ballSpread, ballOffsetY - ballRadius * 0.08, ballOffsetZ + ballRadius * 0.05);
+                rightBall.castShadow = true;
+                rightBall.receiveShadow = true;
+
+                this.dickGroup.add(leftBall);
+                this.dickGroup.add(rightBall);
+
+                const veinMeshes = [];
+                if (style.veins) {
+                    const veinMat = new THREE.MeshLambertMaterial({ color: style.black ? 0x330000 : 0x5a0000 });
+                    const veinCount = 5;
+                    for (let i = 0; i < veinCount; i++) {
+                        const veinR = shaftRadius * 0.09;
+                        const vein = new THREE.Mesh(
+                            new THREE.CylinderGeometry(veinR, veinR * 0.85, shaftLength * 0.92, 6),
+                            veinMat
+                        );
+                        vein.rotation.x = Math.PI / 2;
+                        const angle = (i / veinCount) * Math.PI * 2;
+                        vein.position.set(
+                            Math.cos(angle) * shaftRadius * 0.95,
+                            Math.sin(angle) * shaftRadius * 0.95,
+                            baseZ + shaftLength / 2
+                        );
+                        vein.castShadow = true;
+                        this.dickGroup.add(vein);
+                        veinMeshes.push(vein);
+                    }
+                }
+
+                const pubesGroup = new THREE.Group();
+                const pubesCount = Math.floor(180 + lengthProgress * 120);
+                const hairMaterial = new THREE.MeshLambertMaterial({ color: hairColor });
+                for (let i = 0; i < pubesCount; i++) {
+                    const r = baseRadius * (0.9 + Math.random() * 1.1);
+                    const theta = Math.random() * Math.PI * 2;
+                    const hx = r * Math.cos(theta);
+                    const hz = baseZ - ballRadius * 0.15 + (Math.random() - 0.5) * baseRadius * 0.8;
+                    const hy = (Math.random() - 0.35) * baseRadius * 0.7;
+                    const hLen = baseRadius * (0.9 + Math.random() * 1.1);
+                    const hRad = baseRadius * (0.12 + Math.random() * 0.1);
+                    const hair = new THREE.Mesh(new THREE.ConeGeometry(hRad, hLen, 6), hairMaterial);
+                    hair.position.set(hx, hy, hz);
+                    hair.rotation.x = (Math.random() - 0.5) * 0.6;
+                    hair.rotation.z = (Math.random() - 0.5) * 0.6;
+                    hair.rotation.y = Math.random() * Math.PI * 2;
+                    hair.castShadow = true;
+                    pubesGroup.add(hair);
+                }
+                this.dickGroup.add(pubesGroup);
+
+                this.dickMeshes = { shaft, head, leftBall, rightBall, veinMeshes, shaftMaterial, headMaterial, ballMaterial };
+            }
+            
+            updateDickLiveEffects() {
+                if (!this.dickMeshes?.shaft || !this.marketCap) return;
+                const style = this.getActiveDickStyle(this.marketCap);
+                const t = Date.now() * 0.001;
+
+                if (style.rainbow) {
+                    const hue = (t * 0.35) % 1;
+                    const shaftCol = new THREE.Color().setHSL(hue, 0.9, style.god ? 0.38 : 0.42);
+                    const headCol = new THREE.Color().setHSL((hue + 0.08) % 1, 0.85, 0.55);
+                    this.dickMeshes.shaftMaterial.color.copy(shaftCol);
+                    this.dickMeshes.headMaterial.color.copy(headCol);
+                    this.dickMeshes.ballMaterial.color.copy(shaftCol).multiplyScalar(0.75);
+                }
+
+                if (style.glow) {
+                    const pulse = 0.25 + Math.sin(t * 6) * 0.2;
+                    this.dickMeshes.shaftMaterial.emissiveIntensity = pulse;
+                    this.dickMeshes.headMaterial.emissiveIntensity = pulse + 0.1;
+                    this.dickMeshes.ballMaterial.emissiveIntensity = pulse * 0.8;
+                }
+
+                if (style.shake && this.dickGroup) {
+                    this.dickGroup.rotation.x = this.dickBaseRotX + Math.sin(t * 14) * 0.035;
+                    this.dickGroup.rotation.y = this.dickBaseRotY + Math.sin(t * 9) * 0.02;
+                    this.dickGroup.rotation.z = Math.sin(t * 18) * 0.03;
+                } else if (this.dickGroup) {
+                    this.dickGroup.rotation.x = this.dickBaseRotX;
+                    this.dickGroup.rotation.y = this.dickBaseRotY;
+                    this.dickGroup.rotation.z = 0;
+                }
             }
             
             animate() {
@@ -958,7 +1531,7 @@
 					this.updateDickGeometry();
 				}
 
-				// Keep dick at fixed position (no bounce animation)
+                this.updateDickLiveEffects();
 
                 // Update particles (white liquid)
                 if (this.particles && this.particles.length) {

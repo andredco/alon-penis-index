@@ -1,80 +1,33 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
 const path = require('path');
 const WebSocket = require('ws');
+const { Connection } = require('@solana/web3.js');
+const { PumpMarketMonitor } = require('./marketMonitor');
+const { createRewardsTimer, loadRewardsKeypair } = require('./rewardsTimer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DEFAULT_MARKETCAP = Number(process.env.DEFAULT_MARKETCAP || 7000);
-const MARKETCAP_SOURCE_URL = process.env.MARKETCAP_SOURCE_URL || null; // Optional custom endpoint returning { marketCap }
-const TOKEN_MINT = process.env.TOKEN_MINT || null; // Solana token mint for DexScreener
+const TOKEN_MINT = process.env.TOKEN_MINT || null;
+const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || 'https://solana-rpc.publicnode.com';
+const SOLANA_RPC_WS = process.env.SOLANA_RPC_WS || 'wss://solana-rpc.publicnode.com';
+const REWARDS_WALLET = process.env.REWARDS_WALLET || 'J7DErCUYfvs8FFm9psWLqWa1TsbneMCZpa1AXmeBiXMi';
 
-// Helper: fetch market cap from DexScreener by token mint
-async function fetchDexScreenerMarketCap(tokenMint) {
-    try {
-        const url = `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(tokenMint)}`;
-        const { data } = await axios.get(url, { timeout: 10000, headers: { 'Accept': 'application/json' } });
-        const pairs = Array.isArray(data?.pairs) ? data.pairs : [];
-        if (pairs.length === 0) return null;
+const connection = new Connection(SOLANA_RPC_URL, {
+    wsEndpoint: SOLANA_RPC_WS,
+    commitment: 'confirmed',
+    disableRetryOnRateLimit: true,
+});
 
-        // Pick the pair with highest liquidity USD, fallback to highest 24h volume
-        const best = pairs
-            .slice()
-            .sort((a, b) => (Number(b?.liquidity?.usd || 0) - Number(a?.liquidity?.usd || 0))
-                || (Number(b?.volume?.h24 || 0) - Number(a?.volume?.h24 || 0)))[0];
-
-        const priceUsd = Number(best?.priceUsd || 0);
-        const marketCapField = best?.marketCap ?? best?.fdv;
-        const marketCap = marketCapField != null ? Number(marketCapField) : null;
-
-        if (Number.isFinite(marketCap) && marketCap > 0) {
-            return { marketCap, priceUsd, source: 'dexscreener' };
-        }
-
-        // If MC not provided, we cannot reliably compute without supply; return price for potential future use
-        if (Number.isFinite(priceUsd) && priceUsd > 0) {
-            return { marketCap: null, priceUsd, source: 'dexscreener' };
-        }
-        return null;
-    } catch (e) {
-        return null;
-    }
-}
-
-// Helper: parse DexScreener response (when MARKETCAP_SOURCE_URL points to DexScreener)
-function parseDexScreenerResponse(data) {
-    try {
-        const pairs = Array.isArray(data?.pairs) ? data.pairs : [];
-        if (pairs.length === 0) return null;
-        const best = pairs
-            .slice()
-            .sort((a, b) => (Number(b?.liquidity?.usd || 0) - Number(a?.liquidity?.usd || 0))
-                || (Number(b?.volume?.h24 || 0) - Number(a?.volume?.h24 || 0)))[0];
-        const priceUsd = Number(best?.priceUsd || 0);
-        const marketCapField = best?.marketCap ?? best?.fdv;
-        const marketCap = marketCapField != null ? Number(marketCapField) : null;
-        if (Number.isFinite(marketCap) && marketCap > 0) {
-            return { marketCap, priceUsd };
-        }
-        return null;
-    } catch {
-        return null;
-    }
-}
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Serve the main HTML file
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// API endpoint to get the configured token address
 app.get('/api/token', (req, res) => {
     if (TOKEN_MINT) {
         res.json({ token: TOKEN_MINT });
@@ -83,72 +36,133 @@ app.get('/api/token', (req, res) => {
     }
 });
 
-// API endpoint to get token market cap
-app.get('/api/marketcap/:tokenAddress?', async (req, res) => {
-    try {
-        // Prefer DexScreener if TOKEN_MINT is configured
-        if (TOKEN_MINT) {
-            const ds = await fetchDexScreenerMarketCap(TOKEN_MINT);
-            if (ds && ds.marketCap != null) {
-                return res.json({ marketCap: ds.marketCap, price: ds.priceUsd, source: ds.source });
-            }
-        }
-        // If a custom source URL is configured, prefer it
-        if (MARKETCAP_SOURCE_URL && /^https?:\/\//i.test(MARKETCAP_SOURCE_URL)) {
-            try {
-                const { data } = await axios.get(MARKETCAP_SOURCE_URL, { timeout: 10000, headers: { 'Accept': 'application/json' } });
-                // If it's DexScreener response shape, parse pairs
-                const dsParsed = parseDexScreenerResponse(data);
-                if (dsParsed && dsParsed.marketCap != null) {
-                    return res.json({ marketCap: dsParsed.marketCap, price: dsParsed.priceUsd, source: 'dexscreener:url' });
-                }
-                // Otherwise expect { marketCap }
-                if (data && typeof data.marketCap === 'number') {
-                    return res.json({ marketCap: data.marketCap, source: 'custom' });
-                }
-            } catch {}
-        }
-        // No valid source provided or parse failed
-        return res.status(503).json({ error: 'Market cap source unavailable. Configure TOKEN_MINT or MARKETCAP_SOURCE_URL.' });
-    } catch (error) {
-        console.error('Error fetching market cap:', error);
-        return res.status(503).json({ error: 'Failed to fetch market cap data' });
+app.get('/api/marketcap/:tokenAddress?', (req, res) => {
+    const snapshot = marketMonitor?.getSnapshot();
+    if (snapshot?.marketCap != null) {
+        return res.json({ ...snapshot, status: 'live' });
     }
+    if (lastKnownMarketCap != null) {
+        return res.json({ ...lastPayload, marketCap: lastKnownMarketCap, status: 'live' });
+    }
+    return res.json({ status: 'connecting', marketCap: null, realtime: false });
 });
 
-// Create WebSocket server for real-time updates
+app.get('/api/rewards', (req, res) => {
+    if (!rewardsTimer) {
+        return res.status(503).json({ error: 'Rewards timer not configured' });
+    }
+    res.json(rewardsTimer.getSnapshot());
+});
+
+app.get('/api/status', (req, res) => {
+    res.json({
+        token: TOKEN_MINT,
+        monitor: marketMonitor?.getSnapshot() || null,
+        rewards: rewardsTimer?.getSnapshot() || null,
+        rpc: SOLANA_RPC_URL,
+    });
+});
+
 const server = app.listen(PORT, () => {
     console.log(`Server running: http://localhost:${PORT}`);
 });
 
 const wss = new WebSocket.Server({ server });
 
-let lastKnownMarketCap = DEFAULT_MARKETCAP; // Initial value only; no BTC/simulation fallback
+let lastKnownMarketCap = null;
+let lastPayload = {
+    status: 'connecting',
+    marketCap: null,
+    source: null,
+    realtime: false,
+    isGraduated: false,
+};
+let lastRewardsPayload = null;
 
-// Broadcast market cap updates to all connected clients
+function broadcast(json) {
+    const message = JSON.stringify(json);
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
+    });
+}
+
+function broadcastMarketCap(payload) {
+    lastKnownMarketCap = payload.marketCap;
+    lastPayload = { ...payload, status: 'live' };
+    broadcast({
+        type: 'marketcap',
+        status: 'live',
+        data: payload.marketCap,
+        marketCapSol: payload.marketCapSol,
+        source: payload.source,
+        isGraduated: payload.isGraduated,
+        realtime: payload.realtime,
+        solPriceUsd: payload.solPriceUsd,
+    });
+}
+
+function broadcastRewards(snapshot) {
+    lastRewardsPayload = snapshot;
+    broadcast({ type: 'rewards', data: snapshot });
+}
+
 wss.on('connection', (ws) => {
     console.log('Client connected');
-    // Send the latest known market cap immediately upon connection
     try {
-        ws.send(JSON.stringify({ type: 'marketcap', data: lastKnownMarketCap }));
+        ws.send(JSON.stringify({
+            type: 'marketcap',
+            status: lastPayload.status || (lastKnownMarketCap != null ? 'live' : 'connecting'),
+            data: lastKnownMarketCap,
+            ...lastPayload,
+        }));
+        if (lastRewardsPayload) {
+            ws.send(JSON.stringify({ type: 'rewards', data: lastRewardsPayload }));
+        }
     } catch {}
     ws.on('close', () => {
         console.log('Client disconnected');
     });
 });
 
-setInterval(() => {
-    // Fetch market cap from DexScreener if TOKEN_MINT is configured
-    if (TOKEN_MINT) {
-        fetchDexScreenerMarketCap(TOKEN_MINT).then(ds => {
-            if (ds && ds.marketCap != null) {
-                lastKnownMarketCap = ds.marketCap;
-                wss.clients.forEach(client => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'marketcap', data: lastKnownMarketCap }));
-                    }
-                });
-            }
-        });
-    }
-}, 5000); // Update every 5 seconds 
+let marketMonitor = null;
+let rewardsTimer = null;
+
+if (TOKEN_MINT) {
+    marketMonitor = new PumpMarketMonitor({
+        mintAddress: TOKEN_MINT,
+        rpcUrl: SOLANA_RPC_URL,
+        wsUrl: SOLANA_RPC_WS,
+        onUpdate: (payload) => {
+            console.log(
+                `⚡ MC $${payload.marketCap.toFixed(0)} (${payload.marketCapSol.toFixed(2)} SOL) [${payload.source}]`
+            );
+            broadcastMarketCap(payload);
+        },
+        onStatus: (status) => {
+            console.log(`🔁 Monitor mode: ${status.mode} | graduated=${status.isGraduated}`);
+        },
+    });
+
+    marketMonitor.start().catch((error) => {
+        console.error('Failed to start market monitor:', error.message);
+    });
+} else {
+    console.warn('TOKEN_MINT not set — configure .env for live on-chain tracking');
+}
+
+const rewardsKeypair = loadRewardsKeypair(REWARDS_WALLET, process.env.REWARDS_PRIVATE_KEY);
+if (!rewardsKeypair) {
+    console.warn('REWARDS_PRIVATE_KEY not set — timer will run but auto-distribution is disabled');
+}
+
+rewardsTimer = createRewardsTimer({
+    connection,
+    tokenMint: TOKEN_MINT,
+    rewardsWallet: REWARDS_WALLET,
+    rewardsKeypair,
+    onUpdate: broadcastRewards,
+});
+rewardsTimer.start();
+console.log(`🎁 Holder rewards timer started — wallet ${REWARDS_WALLET}`);
